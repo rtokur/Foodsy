@@ -8,11 +8,11 @@
 import UIKit
 
 class MealCollectionViewCell: UICollectionViewCell {
-    //MARK: - Properties
-    let mealNameLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = .white
-        return label
+    //MARK: - UI Elements
+    let mealImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.backgroundColor = .blue
+        return imageView
     }()
     
     override init(frame: CGRect) {
@@ -28,11 +28,11 @@ class MealCollectionViewCell: UICollectionViewCell {
     
     //MARK: - Setup Methods
     func setupViews(){
-        contentView.addSubview(mealNameLabel)
+        contentView.addSubview(mealImageView)
     }
     
     func setupConstraints(){
-        mealNameLabel.snp.makeConstraints { make in
+        mealImageView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
     }
