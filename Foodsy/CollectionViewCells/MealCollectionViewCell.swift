@@ -12,12 +12,13 @@ class MealCollectionViewCell: UICollectionViewCell {
     let mealImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.backgroundColor = .blue
+        imageView.layer.cornerRadius = 20
+        imageView.clipsToBounds = true
         return imageView
     }()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
         setupViews()
         setupConstraints()
     }

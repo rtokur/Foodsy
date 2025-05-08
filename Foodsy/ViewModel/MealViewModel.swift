@@ -13,6 +13,8 @@ class MealViewModel{
     
     var meals: [Meal] = []
     
+    var categories: [String] = []
+    
     var onDataUpdated: (() -> Void)?
     
     //MARK: - Functions
@@ -20,17 +22,37 @@ class MealViewModel{
         mealService.fetchFoods { [weak self] meals in
             guard let self = self else { return }
             self.meals = meals ?? []
+            self.loadCategories()
             DispatchQueue.main.async {
                 self.onDataUpdated?()
             }
         }
     }
     
-    func numberOfMeals() -> Int{
-        return meals.count
+    func loadCategories(){
+        var categorySet: Set<String> = []
+        meals.forEach { meal in
+            if let mealCategory = meal.strCategory{
+                categorySet.insert(mealCategory)
+            }
+        }
+        categories = Array(categorySet)
     }
     
     func meal(at index: Int) -> Meal{
         return meals[index]
     }
+    
+    func category(at index: Int) -> String{
+        return categories[index]
+    }
+    
+    func numberOfCategories() -> Int{
+        return categories.count
+    }
+    
+    func numberOfMeals() -> Int{
+        return meals.count
+    }
+
 }

@@ -16,4 +16,10 @@ class Meal: Codable{
     let strMeal: String?
     let strMealThumb: String?
     let strInstructions: String?
+    let strCategory: String?
+    
+    var mealUrl: URL? {
+        guard let url = strMealThumb else { return nil }
+        return URL(string: url)
+    }
 }

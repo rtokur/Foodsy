@@ -12,11 +12,30 @@ class CategoryCollectionViewCell: UICollectionViewCell {
     let categoryImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.backgroundColor = .blue
+        imageView.layer.cornerRadius = 35
         return imageView
+    }()
+    
+    let transparentView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .clear
+        view.layer.cornerRadius = 35
+        return view
+    }()
+    
+    let categoryLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.textAlignment = .center
+        label.font = .systemFont(ofSize: 10)
+        return label
     }()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        
+        setupViews()
+        setupConstraints()
     }
     
     required init?(coder: NSCoder) {
@@ -26,11 +45,19 @@ class CategoryCollectionViewCell: UICollectionViewCell {
     //MARK: - Setup Methods
     func setupViews(){
         contentView.addSubview(categoryImageView)
+        contentView.addSubview(transparentView)
+        transparentView.addSubview(categoryLabel)
     }
     
     func setupConstraints(){
         categoryImageView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
+        }
+        transparentView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        categoryLabel.snp.makeConstraints { make in
+            make.height.width.equalToSuperview()
         }
     }
 }

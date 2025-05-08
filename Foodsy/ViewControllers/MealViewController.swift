@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import Kingfisher
 
 class MealViewController: UIViewController {
     
@@ -23,7 +24,7 @@ class MealViewController: UIViewController {
     private let stackView1: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
-        stackView.spacing = 15
+        stackView.spacing = 10
         return stackView
     }()
     
@@ -44,6 +45,7 @@ class MealViewController: UIViewController {
         label.text = "Anonymous"
         label.textColor = .black
         label.textAlignment = .left
+        label.font = .boldSystemFont(ofSize: 20)
         return label
     }()
     
@@ -52,24 +54,46 @@ class MealViewController: UIViewController {
         label.text = "What do you want to cook today?"
         label.textColor = .black
         label.textAlignment = .left
+        label.font = .systemFont(ofSize: 12)
         return label
     }()
     
     private let userImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.backgroundColor = .blue
+        imageView.layer.cornerRadius = 30
         return imageView
     }()
     
     private let searchBar: UISearchBar = {
         let searchBar = UISearchBar()
-        searchBar.placeholder = "Search recipe..."
+        searchBar.showsCancelButton = false
+        searchBar.searchBarStyle = .minimal
+        let textField = searchBar.searchTextField
+        textField.attributedPlaceholder = NSAttributedString(
+            string: "Search recipe...",
+            attributes: [
+                .foregroundColor: UIColor.lightGray,
+                .font: UIFont.systemFont(ofSize: 13)
+            ]
+        )
+        textField.tintColor = .darkGray
+        textField.borderStyle = .none
+        textField.layer.cornerRadius = 20
+        textField.backgroundColor = .white
+        textField.textColor = .darkGray
+        textField.leftView?.tintColor = .lightGray
+        textField.layer.borderColor = UIColor.lightGray.cgColor
+        textField.layer.borderWidth = 1
+        textField.font = UIFont.systemFont(ofSize: 13)
         return searchBar
     }()
     
     private let promoImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.backgroundColor = .purple
+        imageView.image = UIImage(named: "GotoPremiumNow!")
+        imageView.layer.cornerRadius = 15
+        imageView.clipsToBounds = true
         return imageView
     }()
     
@@ -82,6 +106,8 @@ class MealViewController: UIViewController {
     private let categoryLabel: UILabel = {
         let label = UILabel()
         label.text = "Category"
+        label.textColor = .black
+        label.font = .boldSystemFont(ofSize: 20)
         return label
     }()
     
@@ -89,17 +115,20 @@ class MealViewController: UIViewController {
         let button = UIButton()
         button.setTitle("See all",
                         for: .normal)
-        button.backgroundColor = .gray
+        button.setTitleColor(.systemPink, for: .normal)
+        button.titleLabel?.font = UIFont(name: "Avenir", size: 15)
         return button
     }()
     
     private let categoryCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
-        layout.itemSize = CGSize(width: 100,
-                                 height: 100)
+        layout.itemSize = CGSize(width: 70,
+                                 height: 70)
         let collectionView = UICollectionView(frame: .zero,
                                               collectionViewLayout: layout)
+        collectionView.showsHorizontalScrollIndicator = false
+        collectionView.backgroundColor = .clear
         return collectionView
     }()
     
@@ -112,6 +141,8 @@ class MealViewController: UIViewController {
     private let bestRecipeLabel: UILabel = {
         let label = UILabel()
         label.text = "Best Recipe"
+        label.textColor = .black
+        label.font = .boldSystemFont(ofSize: 20)
         return label
     }()
     
@@ -119,18 +150,20 @@ class MealViewController: UIViewController {
         let button = UIButton()
         button.setTitle("See all",
                         for: .normal)
-        button.backgroundColor = .gray
+        button.setTitleColor(.systemPink, for: .normal)
+        button.titleLabel?.font = UIFont(name: "Avenir", size: 15)
         return button
     }()
     
     private let mealCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
-        layout.itemSize = CGSize(width: 250,
+        layout.itemSize = CGSize(width: 230,
                                  height: 300)
         let collectionView = UICollectionView(frame: .zero,
                                           collectionViewLayout: layout)
         collectionView.showsHorizontalScrollIndicator = false
+        collectionView.backgroundColor = .clear
         return collectionView
     }()
     
@@ -145,6 +178,7 @@ class MealViewController: UIViewController {
         mealViewModel.onDataUpdated = { [weak self] in
             guard let self = self else { return }
             self.mealCollectionView.reloadData()
+            self.categoryCollectionView.reloadData()
         }
         
         mealViewModel.loadMeals()
@@ -205,7 +239,7 @@ class MealViewController: UIViewController {
             make.width.equalTo(scrollView.frameLayoutGuide)
         }
         stackView2.snp.makeConstraints { make in
-            make.height.equalTo(70)
+            make.height.equalTo(60)
         }
         stackView3.snp.makeConstraints { make in
             make.height.equalToSuperview()
@@ -217,13 +251,13 @@ class MealViewController: UIViewController {
             make.width.equalToSuperview()
         }
         userImageView.snp.makeConstraints { make in
-            make.width.height.equalTo(70)
+            make.width.height.equalTo(60)
         }
         searchBar.snp.makeConstraints { make in
             make.height.equalTo(70)
         }
         promoImageView.snp.makeConstraints { make in
-            make.height.equalTo(150)
+            make.height.equalTo(140)
         }
         stackView4.snp.makeConstraints { make in
             make.height.equalTo(50)
@@ -235,7 +269,7 @@ class MealViewController: UIViewController {
             make.width.equalTo(70)
         }
         categoryCollectionView.snp.makeConstraints { make in
-            make.height.equalTo(100)
+            make.height.equalTo(70)
         }
         stackView5.snp.makeConstraints { make in
             make.height.equalTo(50)
@@ -257,15 +291,26 @@ extension MealViewController: UICollectionViewDelegate,
                                 UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView,
                         numberOfItemsInSection section: Int) -> Int {
-        return mealViewModel.numberOfMeals()
+        if collectionView == mealCollectionView {
+            return mealViewModel.numberOfMeals()
+        }
+        return mealViewModel.numberOfCategories()
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "MealCollectionViewCell",
-                                                      for: indexPath) as! MealCollectionViewCell
-        let meal = mealViewModel.meal(at: indexPath.row)
-        print(meal.strMealThumb)
+        if collectionView == mealCollectionView {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "MealCollectionViewCell",
+                                                          for: indexPath) as! MealCollectionViewCell
+            let meal = mealViewModel.meal(at: indexPath.row)
+            if let mealUrl = meal.mealUrl {
+                cell.mealImageView.kf.setImage(with: mealUrl)
+            }
+            return cell
+        }
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CategoryCollectionViewCell", for: indexPath) as! CategoryCollectionViewCell
+        let category = mealViewModel.category(at: indexPath.row)
+        cell.categoryLabel.text = category
         return cell
     }
 }
