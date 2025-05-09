@@ -11,14 +11,14 @@ class CategoryCollectionViewCell: UICollectionViewCell {
     //MARK: - UI Elements
     let categoryImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.backgroundColor = .blue
         imageView.layer.cornerRadius = 35
+        imageView.clipsToBounds = true
         return imageView
     }()
     
     let transparentView: UIView = {
         let view = UIView()
-        view.backgroundColor = .clear
+        view.backgroundColor = .black.withAlphaComponent(0.5)
         view.layer.cornerRadius = 35
         return view
     }()

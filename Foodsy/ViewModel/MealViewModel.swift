@@ -13,7 +13,7 @@ class MealViewModel{
     
     var meals: [Meal] = []
     
-    var categories: [String] = []
+    var categories: [String: String] = [:]
     
     var onDataUpdated: (() -> Void)?
     
@@ -34,9 +34,13 @@ class MealViewModel{
         meals.forEach { meal in
             if let mealCategory = meal.strCategory{
                 categorySet.insert(mealCategory)
+                
+                if categories[mealCategory] == nil, let thumb = meal.strMealThumb {
+                    categories[mealCategory] = thumb
+                }
             }
         }
-        categories = Array(categorySet)
+        
     }
     
     func meal(at index: Int) -> Meal{
@@ -44,7 +48,7 @@ class MealViewModel{
     }
     
     func category(at index: Int) -> String{
-        return categories[index]
+        return Array(categories.keys)[index]
     }
     
     func numberOfCategories() -> Int{

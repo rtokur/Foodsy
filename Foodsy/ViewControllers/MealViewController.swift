@@ -231,8 +231,9 @@ class MealViewController: UIViewController {
     
     func setupConstraints(){
         scrollView.snp.makeConstraints { make in
-            make.leading.trailing.bottom.equalTo(view.safeAreaLayoutGuide).inset(15)
+            make.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(15)
             make.top.equalTo(view.safeAreaLayoutGuide)
+            make.bottom.equalToSuperview()
         }
         stackView1.snp.makeConstraints { make in
             make.height.equalTo(scrollView.contentLayoutGuide)
@@ -303,14 +304,21 @@ extension MealViewController: UICollectionViewDelegate,
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "MealCollectionViewCell",
                                                           for: indexPath) as! MealCollectionViewCell
             let meal = mealViewModel.meal(at: indexPath.row)
-            if let mealUrl = meal.mealUrl {
+            if let mealUrl = meal.mealUrl,
+               let cuisine = meal.strArea{
                 cell.mealImageView.kf.setImage(with: mealUrl)
+                cell.mealNameLabel.text = meal.strMeal
+                cell.cuisineLabel.text = "from \(cuisine)"
             }
             return cell
         }
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CategoryCollectionViewCell", for: indexPath) as! CategoryCollectionViewCell
         let category = mealViewModel.category(at: indexPath.row)
         cell.categoryLabel.text = category
+        if let urlString = mealViewModel.categories[category],
+           let url = URL(string: urlString){
+            cell.categoryImageView.kf.setImage(with: url)
+        }
         return cell
     }
 }
