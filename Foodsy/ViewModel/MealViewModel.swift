@@ -13,10 +13,10 @@ class MealViewModel{
     
     var meals: [Meal] = []
     
-    var categories: [String: String] = [:]
+    var categories: [String: URL] = [:]
     
     var onDataUpdated: (() -> Void)?
-    
+
     //MARK: - Functions
     func loadMeals(){
         mealService.fetchFoods { [weak self] meals in
@@ -30,17 +30,13 @@ class MealViewModel{
     }
     
     func loadCategories(){
-        var categorySet: Set<String> = []
         meals.forEach { meal in
             if let mealCategory = meal.strCategory{
-                categorySet.insert(mealCategory)
-                
-                if categories[mealCategory] == nil, let thumb = meal.strMealThumb {
+                if categories[mealCategory] == nil, let thumb = meal.mealUrl {
                     categories[mealCategory] = thumb
                 }
             }
         }
-        
     }
     
     func meal(at index: Int) -> Meal{

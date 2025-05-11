@@ -129,6 +129,7 @@ class MealViewController: UIViewController {
                                               collectionViewLayout: layout)
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.backgroundColor = .clear
+        collectionView.contentInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
         return collectionView
     }()
     
@@ -159,11 +160,12 @@ class MealViewController: UIViewController {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         layout.itemSize = CGSize(width: 230,
-                                 height: 300)
+                                 height: 280)
         let collectionView = UICollectionView(frame: .zero,
                                           collectionViewLayout: layout)
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.backgroundColor = .clear
+        collectionView.contentInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
         return collectionView
     }()
     
@@ -231,7 +233,7 @@ class MealViewController: UIViewController {
     
     func setupConstraints(){
         scrollView.snp.makeConstraints { make in
-            make.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(15)
+            make.leading.trailing.equalTo(view.safeAreaLayoutGuide)
             make.top.equalTo(view.safeAreaLayoutGuide)
             make.bottom.equalToSuperview()
         }
@@ -256,12 +258,15 @@ class MealViewController: UIViewController {
         }
         searchBar.snp.makeConstraints { make in
             make.height.equalTo(70)
+            make.leading.trailing.equalToSuperview().inset(15)
         }
         promoImageView.snp.makeConstraints { make in
             make.height.equalTo(140)
+            make.leading.trailing.equalToSuperview().inset(20)
         }
         stackView4.snp.makeConstraints { make in
             make.height.equalTo(50)
+            make.leading.trailing.equalToSuperview().inset(20)
         }
         categoryLabel.snp.makeConstraints { make in
             make.height.equalToSuperview()
@@ -274,6 +279,7 @@ class MealViewController: UIViewController {
         }
         stackView5.snp.makeConstraints { make in
             make.height.equalTo(50)
+            make.leading.trailing.equalToSuperview().inset(20)
         }
         bestRecipeLabel.snp.makeConstraints { make in
             make.height.equalToSuperview()
@@ -282,7 +288,7 @@ class MealViewController: UIViewController {
             make.width.equalTo(70)
         }
         mealCollectionView.snp.makeConstraints { make in
-            make.height.equalTo(300)
+            make.height.equalTo(280)
         }
     }
 }
@@ -315,10 +321,18 @@ extension MealViewController: UICollectionViewDelegate,
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CategoryCollectionViewCell", for: indexPath) as! CategoryCollectionViewCell
         let category = mealViewModel.category(at: indexPath.row)
         cell.categoryLabel.text = category
-        if let urlString = mealViewModel.categories[category],
-           let url = URL(string: urlString){
+        if let url = mealViewModel.categories[category]{
             cell.categoryImageView.kf.setImage(with: url)
         }
         return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let meal = mealViewModel.meal(at: indexPath.row)
+        let mealDetailViewController = MealDetailViewController()
+        mealDetailViewController.mealDetailViewModel = MealDetailViewModel(meal: meal)
+        mealDetailViewController.modalPresentationStyle = .fullScreen
+        mealDetailViewController.isModalInPresentation = true
+        present(mealDetailViewController, animated: true)
     }
 }
