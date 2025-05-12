@@ -50,18 +50,37 @@ class MealCollectionViewCell: UICollectionViewCell {
         return label
     }()
     
-    let minuteLabel: UILabel = {
-        let label = UILabel()
-        label.text = "20 minutes"
-        label.font = .systemFont(ofSize: 10)
-        label.textColor = .white
-        return label
-    }()
-    
     private let lineView: UIView = {
         let lineView = UIView()
         lineView.backgroundColor = .white
         return lineView
+    }()
+    
+    private let stackView2: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        return stackView
+    }()
+    
+    let minuteButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage(named: "clock"), for: .normal)
+        button.contentHorizontalAlignment = .left
+        var configuration = UIButton.Configuration.plain()
+        configuration.imagePadding = 5
+        configuration.attributedTitle = AttributedString(NSAttributedString(string: "20 mins", attributes: Constant.attributesIngredientsCount))
+        button.configuration = configuration
+        return button
+    }()
+    
+    let ingredientCountButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage(named: "recipe"), for: .normal)
+        button.contentHorizontalAlignment = .left
+        var configuration = UIButton.Configuration.plain()
+        configuration.imagePadding = 5
+        button.configuration = configuration
+        return button
     }()
     
     private let gradientLayer: CAGradientLayer = {
@@ -106,7 +125,11 @@ class MealCollectionViewCell: UICollectionViewCell {
         
         stackView.addArrangedSubview(lineView)
         
-        stackView.addArrangedSubview(minuteLabel)
+        stackView.addArrangedSubview(stackView2)
+        
+        stackView2.addArrangedSubview(minuteButton)
+        
+        stackView2.addArrangedSubview(ingredientCountButton)
     }
     
     func setupConstraints(){
@@ -134,8 +157,14 @@ class MealCollectionViewCell: UICollectionViewCell {
         lineView.snp.makeConstraints { make in
             make.height.equalTo(1)
         }
-        minuteLabel.snp.makeConstraints { make in
+        stackView2.snp.makeConstraints { make in
             make.width.equalToSuperview()
+        }
+        minuteButton.snp.makeConstraints { make in
+            make.width.equalTo(90)
+        }
+        ingredientCountButton.snp.makeConstraints { make in
+            make.height.equalToSuperview()
         }
     }
     

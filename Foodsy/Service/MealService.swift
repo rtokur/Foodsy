@@ -32,4 +32,29 @@ class MealService {
             }
         }.resume()
     }
+    
+    func fetchCategories(completion: @escaping([Category]?) -> Void){
+        let categoryUrlString = "https://www.themealdb.com/api/json/v1/1/categories.php"
+        guard let categoryUrl = URL(string: categoryUrlString) else {
+            completion(nil)
+            return
+        }
+        
+        URLSession.shared.dataTask(with: categoryUrl) { data, response, error in
+            if let data = data{
+                do{
+                    let result = try JSONDecoder().decode(CategoryResponse.self,from: data)
+                    let dataa = try JSONSerialization.jsonObject(with: data)
+                    print(dataa)
+                    completion(result.categories ?? [])
+                }catch{
+                    print(error)
+                    completion(nil)
+                }
+            }else{
+                completion(nil)
+            }
+        }.resume()
+    }
+    
 }

@@ -30,7 +30,7 @@ class MealDetailViewController: UIViewController {
     
     private let backButton: UIButton = {
         let button = UIButton()
-        button.backgroundColor = .white.withAlphaComponent(0.5)
+        button.backgroundColor = .white.withAlphaComponent(0.1)
         button.setImage(UIImage(systemName: "chevron.backward"), for: .normal)
         button.tintColor = .white
         button.layer.cornerRadius = 20
@@ -63,17 +63,24 @@ class MealDetailViewController: UIViewController {
         button.backgroundColor = UIColor(named: Constant.lightPink)
         button.layer.cornerRadius = 17
         button.tintColor = .black
-        button.titleLabel?.font = .systemFont(ofSize: 12)
-        button.setTitle("40 mins", for: .normal)
-        button.setTitleColor(.black, for: .normal)
-        button.setImage(UIImage(systemName: "clock"), for: .normal)
+        var configuration = UIButton.Configuration.plain()
+        configuration.attributedTitle = AttributedString(NSAttributedString(string: "40 mins",
+                                                                            attributes: Constant.attributesMinutes))
+        configuration.imagePadding = 10
+        let configurationImage = UIImage.SymbolConfiguration(pointSize: 13)
+        button.setImage(UIImage(systemName: "clock",
+                                withConfiguration: configurationImage),
+                        for: .normal)
+        button.configuration = configuration
         return button
     }()
     
     private let favoriteButton: UIButton = {
         let button = UIButton()
         let configuration = UIImage.SymbolConfiguration(pointSize: 30)
-        button.setImage(UIImage(systemName: "heart", withConfiguration: configuration), for: .normal)
+        button.setImage(UIImage(systemName: "heart",
+                                withConfiguration: configuration),
+                        for: .normal)
         button.tintColor = .systemPink
         return button
     }()
@@ -112,25 +119,53 @@ class MealDetailViewController: UIViewController {
     private let ingredientsButton: UIButton = {
         let button = UIButton()
         button.backgroundColor = UIColor(named: Constant.pink)
-        button.setTitle("Ingredients", for: .normal)
-        button.setImage(UIImage(systemName: "list.bullet"), for: .normal)
+        var configurationImage = UIImage.SymbolConfiguration(pointSize: 10)
+        button.setImage(UIImage(systemName: "list.bullet", withConfiguration: configurationImage), for: .normal)
         button.layer.cornerRadius = 18
-        button.titleLabel?.font = .systemFont(ofSize: 13)
         button.tintColor = .white
-        button.setTitleColor(.white, for: .normal)
+        button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+        var configuration = UIButton.Configuration.plain()
+        configuration.imagePadding = 5
+        configuration.attributedTitle = AttributedString(NSAttributedString(string: "Ingredients",
+                                                                            attributes: Constant.attributesIngredients))
+        button.configuration = configuration
         return button
     }()
     
     private let instructionButton: UIButton = {
         let button = UIButton()
         button.backgroundColor = .white
-        button.setTitle("Instruction", for: .normal)
-        button.setImage(UIImage(systemName: "document"), for: .normal)
+        var configurationImage = UIImage.SymbolConfiguration(pointSize: 10)
+        button.setImage(UIImage(systemName: "document",
+                                withConfiguration: configurationImage),
+                        for: .normal)
         button.layer.cornerRadius = 18
-        button.titleLabel?.font = .systemFont(ofSize: 13)
         button.tintColor = .lightGray
-        button.setTitleColor(.lightGray, for: .normal)
+        button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+        var configuration = UIButton.Configuration.plain()
+        configuration.imagePadding = 5
+        configuration.attributedTitle = AttributedString(NSAttributedString(string: "Instruction",
+                                                                            attributes: Constant.attributesInstruction))
+        button.configuration = configuration
         return button
+    }()
+    
+    private let textView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .white
+        view.layer.borderColor = UIColor.lightGray.cgColor
+        view.layer.borderWidth = 1
+        view.layer.cornerRadius = 15
+        return view
+    }()
+    
+    private let textLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .black
+        label.font = .systemFont(ofSize: 14)
+        label.lineBreakMode = .byWordWrapping
+        label.numberOfLines = 0
+        return label
     }()
     
     //MARK: - Lifecycle
@@ -170,6 +205,9 @@ class MealDetailViewController: UIViewController {
         mealDetailView.addSubview(stackView2)
         stackView2.addArrangedSubview(ingredientsButton)
         stackView2.addArrangedSubview(instructionButton)
+        stackView1.addArrangedSubview(textView)
+        textView.addSubview(textLabel)
+        textLabel.text = mealDetailViewModel.ingredients.joined(separator: "\n")
     }
     
     func setupConstraints(){
@@ -187,7 +225,7 @@ class MealDetailViewController: UIViewController {
         }
         detailView.snp.makeConstraints { make in
             make.leading.trailing.bottom.equalToSuperview()
-            make.top.equalTo(mealImageView.snp.bottom)
+            make.top.equalTo(mealImageView.snp.bottom).inset(26)
         }
         scrollView.snp.makeConstraints { make in
             make.leading.trailing.equalTo(detailView).inset(30)
@@ -228,6 +266,12 @@ class MealDetailViewController: UIViewController {
         instructionButton.snp.makeConstraints { make in
             make.height.equalToSuperview()
         }
+        textView.snp.makeConstraints { make in
+            make.width.equalToSuperview()
+        }
+        textLabel.snp.makeConstraints { make in
+            make.edges.equalToSuperview().inset(15)
+        }
     }
     
     //MARK: - Functions
@@ -244,9 +288,40 @@ class MealDetailViewController: UIViewController {
         dismiss(animated: true)
     }
 
+    @objc func buttonTapped(_ sender: UIButton){
+        if sender == ingredientsButton {
+            UIView.animate(withDuration: 0.3) { [weak self] in
+                self?.ingredientsButton.backgroundColor = UIColor(named: Constant.pink)
+                self?.ingredientsButton.tintColor = .white
+                self?.ingredientsButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "Ingredients", attributes: Constant.attributesIngredients))
+                self?.textLabel.text = self?.mealDetailViewModel.ingredients.joined(separator: "\n")
+                self?.instructionButton.backgroundColor = .white
+                self?.instructionButton.tintColor = .lightGray
+                self?.instructionButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "Instruction", attributes: Constant.attributesInstruction))
+            }
+        }else{
+            UIView.animate(withDuration: 0.3) { [weak self] in
+                self?.instructionButton.backgroundColor = UIColor(named: Constant.pink)
+                self?.instructionButton.tintColor = .white
+                self?.instructionButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "Instruction", attributes: Constant.attributesIngredients))
+                self?.textLabel.text = self?.mealDetailViewModel.instructions.joined(separator: "\n")
+                self?.ingredientsButton.backgroundColor = .white
+                self?.ingredientsButton.tintColor = .lightGray
+                self?.ingredientsButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "Ingredients", attributes: Constant.attributesInstruction))
+            }
+        }
+    }
 }
 
 public enum Constant {
     static let lightPink = "LightPink"
-    static let pink = "Pink"
+    static let pink = "DarkPink"
+    static let attributesMinutes: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 12),
+                                                                   .foregroundColor: UIColor.black]
+    static let attributesIngredientsCount: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 11),
+                                                                            .foregroundColor: UIColor.white]
+    static let attributesIngredients: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 13),
+                                                                       .foregroundColor: UIColor.white]
+    static let attributesInstruction: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 13),
+                                                                       .foregroundColor: UIColor.lightGray]
 }

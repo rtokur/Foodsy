@@ -184,6 +184,7 @@ class MealViewController: UIViewController {
         }
         
         mealViewModel.loadMeals()
+        mealViewModel.loadCategories()
     }
     
     //MARK: - Setup Methods
@@ -315,24 +316,29 @@ extension MealViewController: UICollectionViewDelegate,
                 cell.mealImageView.kf.setImage(with: mealUrl)
                 cell.mealNameLabel.text = meal.strMeal
                 cell.cuisineLabel.text = "from \(cuisine)"
+                let ingredientsCount = mealViewModel.numberOfIngredients(meal: meal)
+                cell.ingredientCountButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "\(ingredientsCount) ingredients", attributes: Constant.attributesIngredientsCount))
             }
             return cell
         }
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CategoryCollectionViewCell", for: indexPath) as! CategoryCollectionViewCell
         let category = mealViewModel.category(at: indexPath.row)
-        cell.categoryLabel.text = category
-        if let url = mealViewModel.categories[category]{
+        cell.categoryLabel.text = category.strCategory
+        if let url = mealViewModel.categories[indexPath.row].categoryUrl{
             cell.categoryImageView.kf.setImage(with: url)
         }
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let meal = mealViewModel.meal(at: indexPath.row)
-        let mealDetailViewController = MealDetailViewController()
-        mealDetailViewController.mealDetailViewModel = MealDetailViewModel(meal: meal)
-        mealDetailViewController.modalPresentationStyle = .fullScreen
-        mealDetailViewController.isModalInPresentation = true
-        present(mealDetailViewController, animated: true)
+        if collectionView == mealCollectionView {
+            let meal = mealViewModel.meal(at: indexPath.row)
+            let mealDetailViewController = MealDetailViewController()
+            mealDetailViewController.mealDetailViewModel = MealDetailViewModel(meal: meal)
+            mealDetailViewController.modalPresentationStyle = .fullScreen
+            mealDetailViewController.isModalInPresentation = true
+            present(mealDetailViewController, animated: true)
+        }
     }
 }
+

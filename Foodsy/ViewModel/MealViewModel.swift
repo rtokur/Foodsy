@@ -13,7 +13,7 @@ class MealViewModel{
     
     var meals: [Meal] = []
     
-    var categories: [String: URL] = [:]
+    var categories: [Category] = []
     
     var onDataUpdated: (() -> Void)?
 
@@ -22,7 +22,6 @@ class MealViewModel{
         mealService.fetchFoods { [weak self] meals in
             guard let self = self else { return }
             self.meals = meals ?? []
-            self.loadCategories()
             DispatchQueue.main.async {
                 self.onDataUpdated?()
             }
@@ -30,11 +29,11 @@ class MealViewModel{
     }
     
     func loadCategories(){
-        meals.forEach { meal in
-            if let mealCategory = meal.strCategory{
-                if categories[mealCategory] == nil, let thumb = meal.mealUrl {
-                    categories[mealCategory] = thumb
-                }
+        mealService.fetchCategories { [weak self] categories in
+            guard let self = self else { return }
+            self.categories = categories ?? []
+            DispatchQueue.main.async {
+                self.onDataUpdated?()
             }
         }
     }
@@ -43,8 +42,8 @@ class MealViewModel{
         return meals[index]
     }
     
-    func category(at index: Int) -> String{
-        return Array(categories.keys)[index]
+    func category(at index: Int) -> Category{
+        return categories[index]
     }
     
     func numberOfCategories() -> Int{
@@ -55,4 +54,18 @@ class MealViewModel{
         return meals.count
     }
 
+    func numberOfIngredients(meal: Meal) -> Int{
+        let mirror = Mirror(reflecting: meal)
+        var count = 0
+        
+        for i in 1...20 {
+            let ingredient = "strIngredient\(i)"
+            if let value = mirror.children.first(where: { $0.label == ingredient})?.value as? String,
+               !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                count += 1
+            }
+        }
+        
+        return count
+    }
 }

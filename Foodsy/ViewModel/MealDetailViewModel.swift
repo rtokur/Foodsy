@@ -23,8 +23,15 @@ class MealDetailViewModel {
         return meal.mealUrl
     }
     
-    var instructions: String {
-        return meal.strInstructions ?? "No instructions"
+    var instructions: [String] {
+        let splittedInstructions = meal.strInstructions?.components(separatedBy: ".") ?? []
+        
+        let arrangedInstructions = splittedInstructions
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }  
+            .filter { !$0.isEmpty }
+            .map { "- \($0)." }
+
+        return arrangedInstructions
     }
     
     var category: String {
@@ -45,7 +52,7 @@ class MealDetailViewModel {
             if let ingredient = mirror.children.first(where: { $0.label == ingredientFirst})?.value as? String,
                let measure = mirror.children.first(where: { $0.label == measureFirst})?.value as? String,
                !ingredient.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                result.append("\(measure) \(ingredient)")
+                result.append("- \(measure) \(ingredient)")
             }
         }
         return result
