@@ -20,8 +20,6 @@ class MealService {
             if let data = data{
                 do{
                     let result = try JSONDecoder().decode(MealResponse.self,from: data)
-                    let dataa = try JSONSerialization.jsonObject(with: data)
-                    print(dataa)
                     completion(result.meals)
                 }catch{
                     print(error)
@@ -44,8 +42,6 @@ class MealService {
             if let data = data{
                 do{
                     let result = try JSONDecoder().decode(CategoryResponse.self,from: data)
-                    let dataa = try JSONSerialization.jsonObject(with: data)
-                    print(dataa)
                     completion(result.categories ?? [])
                 }catch{
                     print(error)
@@ -57,4 +53,28 @@ class MealService {
         }.resume()
     }
     
+    func fetchMealsForCategory(for category: String, completion: @escaping (Result<[Meal], Error>?) -> Void){
+        let categoryUrlString = "https://www.themealdb.com/api/json/v1/1/filter.php?c=\(category)"
+        guard let url = URL(string: categoryUrlString) else {
+            completion(nil)
+            return
+        }
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error{
+                completion(.failure(error))
+                return
+            }
+            
+            guard let data = data else { return }
+            
+            do {
+                let response = try JSONDecoder().decode(MealResponse.self, from: data)
+                let respons = try JSONSerialization.jsonObject(with: data)
+                print(respons)
+                completion(.success(response.meals ?? []))
+            }catch{
+                completion(.failure(error))
+            }
+        }.resume()
+    }
 }

@@ -18,7 +18,9 @@ class MealCollectionViewCell: UICollectionViewCell {
     private let favoriteButton: UIButton = {
         let button = UIButton()
         button.backgroundColor = .lightGray.withAlphaComponent(0.2)
-        button.setImage(UIImage(systemName: "heart"), for: .normal)
+        let configuration = UIImage.SymbolConfiguration(pointSize: 23)
+        button.setImage(UIImage(systemName: "heart", withConfiguration: configuration),
+                        for: .normal)
         button.tintColor = .white
         button.layer.cornerRadius = 20
         return button
@@ -64,11 +66,13 @@ class MealCollectionViewCell: UICollectionViewCell {
     
     let minuteButton: UIButton = {
         let button = UIButton()
-        button.setImage(UIImage(named: "clock"), for: .normal)
+        button.setImage(UIImage(named: "clock"),
+                        for: .normal)
         button.contentHorizontalAlignment = .left
         var configuration = UIButton.Configuration.plain()
         configuration.imagePadding = 5
-        configuration.attributedTitle = AttributedString(NSAttributedString(string: "20 mins", attributes: Constant.attributesIngredientsCount))
+        configuration.attributedTitle = AttributedString(NSAttributedString(string: "20 mins",
+                                                                            attributes: Constant.attributesIngredientsCount))
         button.configuration = configuration
         return button
     }()
@@ -171,8 +175,10 @@ class MealCollectionViewCell: UICollectionViewCell {
     func setupGradient(){
         gradientLayer.colors = [UIColor.black.withAlphaComponent(0.9).cgColor,
                                 UIColor.clear.cgColor]
-        gradientLayer.startPoint = CGPoint(x: 0.5, y: 1.0)
-        gradientLayer.endPoint = CGPoint(x: 0.5, y: 0.0)
+        gradientLayer.startPoint = CGPoint(x: 0.5,
+                                           y: 1.0)
+        gradientLayer.endPoint = CGPoint(x: 0.5,
+                                         y: 0.0)
         gradientView.layer.addSublayer(gradientLayer)
     }
 }

@@ -31,10 +31,13 @@ class MealDetailViewController: UIViewController {
     private let backButton: UIButton = {
         let button = UIButton()
         button.backgroundColor = .white.withAlphaComponent(0.1)
-        button.setImage(UIImage(systemName: "chevron.backward"), for: .normal)
+        button.setImage(UIImage(systemName: "chevron.backward"),
+                        for: .normal)
         button.tintColor = .white
         button.layer.cornerRadius = 20
-        button.addTarget(self, action: #selector(backButtonAction), for: .touchUpInside)
+        button.addTarget(self,
+                         action: #selector(backButtonAction),
+                         for: .touchUpInside)
         return button
     }()
     
@@ -120,10 +123,14 @@ class MealDetailViewController: UIViewController {
         let button = UIButton()
         button.backgroundColor = UIColor(named: Constant.pink)
         var configurationImage = UIImage.SymbolConfiguration(pointSize: 10)
-        button.setImage(UIImage(systemName: "list.bullet", withConfiguration: configurationImage), for: .normal)
+        button.setImage(UIImage(systemName: "list.bullet",
+                                withConfiguration: configurationImage),
+                        for: .normal)
         button.layer.cornerRadius = 18
         button.tintColor = .white
-        button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+        button.addTarget(self,
+                         action: #selector(buttonTapped),
+                         for: .touchUpInside)
         var configuration = UIButton.Configuration.plain()
         configuration.imagePadding = 5
         configuration.attributedTitle = AttributedString(NSAttributedString(string: "Ingredients",
@@ -141,7 +148,9 @@ class MealDetailViewController: UIViewController {
                         for: .normal)
         button.layer.cornerRadius = 18
         button.tintColor = .lightGray
-        button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+        button.addTarget(self,
+                         action: #selector(buttonTapped),
+                         for: .touchUpInside)
         var configuration = UIButton.Configuration.plain()
         configuration.imagePadding = 5
         configuration.attributedTitle = AttributedString(NSAttributedString(string: "Instruction",
@@ -278,8 +287,10 @@ class MealDetailViewController: UIViewController {
     func setupGradient(){
         gradientLayer.colors = [UIColor.white.withAlphaComponent(0.8).cgColor,
                                 UIColor.clear.cgColor]
-        gradientLayer.startPoint = CGPoint(x: 0.5, y: 1.0)
-        gradientLayer.endPoint = CGPoint(x: 0.5, y: 0.0)
+        gradientLayer.startPoint = CGPoint(x: 0.5,
+                                           y: 1.0)
+        gradientLayer.endPoint = CGPoint(x: 0.5,
+                                         y: 0.0)
         gradientView.layer.addSublayer(gradientLayer)
     }
     
@@ -293,21 +304,25 @@ class MealDetailViewController: UIViewController {
             UIView.animate(withDuration: 0.3) { [weak self] in
                 self?.ingredientsButton.backgroundColor = UIColor(named: Constant.pink)
                 self?.ingredientsButton.tintColor = .white
-                self?.ingredientsButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "Ingredients", attributes: Constant.attributesIngredients))
+                self?.ingredientsButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "Ingredients",
+                                                                                                             attributes: Constant.attributesIngredients))
                 self?.textLabel.text = self?.mealDetailViewModel.ingredients.joined(separator: "\n")
                 self?.instructionButton.backgroundColor = .white
                 self?.instructionButton.tintColor = .lightGray
-                self?.instructionButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "Instruction", attributes: Constant.attributesInstruction))
+                self?.instructionButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "Instruction",
+                                                                                                             attributes: Constant.attributesInstruction))
             }
         }else{
             UIView.animate(withDuration: 0.3) { [weak self] in
                 self?.instructionButton.backgroundColor = UIColor(named: Constant.pink)
                 self?.instructionButton.tintColor = .white
-                self?.instructionButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "Instruction", attributes: Constant.attributesIngredients))
+                self?.instructionButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "Instruction",
+                                                                                                             attributes: Constant.attributesIngredients))
                 self?.textLabel.text = self?.mealDetailViewModel.instructions.joined(separator: "\n")
                 self?.ingredientsButton.backgroundColor = .white
                 self?.ingredientsButton.tintColor = .lightGray
-                self?.ingredientsButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "Ingredients", attributes: Constant.attributesInstruction))
+                self?.ingredientsButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "Ingredients",
+                                                                                                             attributes: Constant.attributesInstruction))
             }
         }
     }
@@ -324,4 +339,5 @@ public enum Constant {
                                                                        .foregroundColor: UIColor.white]
     static let attributesInstruction: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 13),
                                                                        .foregroundColor: UIColor.lightGray]
+    static let attributesCategory: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 11)]
 }

@@ -115,8 +115,10 @@ class MealViewController: UIViewController {
         let button = UIButton()
         button.setTitle("See all",
                         for: .normal)
-        button.setTitleColor(.systemPink, for: .normal)
-        button.titleLabel?.font = UIFont(name: "Avenir", size: 15)
+        button.setTitleColor(.systemPink,
+                             for: .normal)
+        button.titleLabel?.font = UIFont(name: "Avenir",
+                                         size: 15)
         return button
     }()
     
@@ -129,7 +131,10 @@ class MealViewController: UIViewController {
                                               collectionViewLayout: layout)
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.backgroundColor = .clear
-        collectionView.contentInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        collectionView.contentInset = UIEdgeInsets(top: 0,
+                                                   left: 20,
+                                                   bottom: 0,
+                                                   right: 20)
         return collectionView
     }()
     
@@ -151,8 +156,10 @@ class MealViewController: UIViewController {
         let button = UIButton()
         button.setTitle("See all",
                         for: .normal)
-        button.setTitleColor(.systemPink, for: .normal)
-        button.titleLabel?.font = UIFont(name: "Avenir", size: 15)
+        button.setTitleColor(.systemPink,
+                             for: .normal)
+        button.titleLabel?.font = UIFont(name: "Avenir",
+                                         size: 15)
         return button
     }()
     
@@ -165,7 +172,10 @@ class MealViewController: UIViewController {
                                           collectionViewLayout: layout)
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.backgroundColor = .clear
-        collectionView.contentInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        collectionView.contentInset = UIEdgeInsets(top: 0,
+                                                   left: 20,
+                                                   bottom: 0,
+                                                   right: 20)
         return collectionView
     }()
     
@@ -317,11 +327,13 @@ extension MealViewController: UICollectionViewDelegate,
                 cell.mealNameLabel.text = meal.strMeal
                 cell.cuisineLabel.text = "from \(cuisine)"
                 let ingredientsCount = mealViewModel.numberOfIngredients(meal: meal)
-                cell.ingredientCountButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "\(ingredientsCount) ingredients", attributes: Constant.attributesIngredientsCount))
+                cell.ingredientCountButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "\(ingredientsCount) ingredients",
+                                                                                                                attributes: Constant.attributesIngredientsCount))
             }
             return cell
         }
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CategoryCollectionViewCell", for: indexPath) as! CategoryCollectionViewCell
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CategoryCollectionViewCell",
+                                                      for: indexPath) as! CategoryCollectionViewCell
         let category = mealViewModel.category(at: indexPath.row)
         cell.categoryLabel.text = category.strCategory
         if let url = mealViewModel.categories[indexPath.row].categoryUrl{
@@ -330,14 +342,23 @@ extension MealViewController: UICollectionViewDelegate,
         return cell
     }
     
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    func collectionView(_ collectionView: UICollectionView,
+                        didSelectItemAt indexPath: IndexPath) {
         if collectionView == mealCollectionView {
             let meal = mealViewModel.meal(at: indexPath.row)
             let mealDetailViewController = MealDetailViewController()
             mealDetailViewController.mealDetailViewModel = MealDetailViewModel(meal: meal)
             mealDetailViewController.modalPresentationStyle = .fullScreen
             mealDetailViewController.isModalInPresentation = true
-            present(mealDetailViewController, animated: true)
+            present(mealDetailViewController,
+                    animated: true)
+        }else{
+            let category = mealViewModel.category(at: indexPath.row).strCategory ?? ""
+            let categoryViewController = CategoryViewController()
+            categoryViewController.categoryViewModel.selectedCategory = category
+            categoryViewController.modalPresentationStyle = .fullScreen
+            categoryViewController.isModalInPresentation = true
+            present(categoryViewController, animated: true)
         }
     }
 }
