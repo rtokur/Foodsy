@@ -15,19 +15,6 @@ class MealViewController: UIViewController {
     private let mealViewModel = MealViewModel()
     
     //MARK: - UI Elements
-    private let scrollView: UIScrollView = {
-        let scrollView = UIScrollView()
-        scrollView.showsVerticalScrollIndicator = false
-        return scrollView
-    }()
-    
-    private let stackView1: UIStackView = {
-        let stackView = UIStackView()
-        stackView.axis = .vertical
-        stackView.spacing = 10
-        return stackView
-    }()
-    
     private let stackView2: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -63,6 +50,13 @@ class MealViewController: UIViewController {
         imageView.backgroundColor = .blue
         imageView.layer.cornerRadius = 30
         return imageView
+    }()
+    
+    private let stackView1: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        stackView.spacing = 15
+        return stackView
     }()
     
     private let searchBar: UISearchBar = {
@@ -119,6 +113,9 @@ class MealViewController: UIViewController {
                              for: .normal)
         button.titleLabel?.font = UIFont(name: "Avenir",
                                          size: 15)
+        button.addTarget(self,
+                         action: #selector(goToCategory),
+                         for: .touchUpInside)
         return button
     }()
     
@@ -199,11 +196,7 @@ class MealViewController: UIViewController {
     
     //MARK: - Setup Methods
     func setupViews(){
-        view.addSubview(scrollView)
-        
-        scrollView.addSubview(stackView1)
-        
-        stackView1.addArrangedSubview(stackView2)
+        view.addSubview(stackView2)
         
         stackView2.addArrangedSubview(stackView3)
         
@@ -212,6 +205,8 @@ class MealViewController: UIViewController {
         stackView3.addArrangedSubview(whatDoYouWantLabel)
         
         stackView2.addArrangedSubview(userImageView)
+        
+        view.addSubview(stackView1)
         
         stackView1.addArrangedSubview(searchBar)
         
@@ -223,19 +218,19 @@ class MealViewController: UIViewController {
         
         stackView4.addArrangedSubview(seeAllButton)
         
-        stackView1.addArrangedSubview(categoryCollectionView)
+        view.addSubview(categoryCollectionView)
         categoryCollectionView.delegate = self
         categoryCollectionView.dataSource = self
         categoryCollectionView.register(CategoryCollectionViewCell.self,
                                         forCellWithReuseIdentifier: "CategoryCollectionViewCell")
         
-        stackView1.addArrangedSubview(stackView5)
+        view.addSubview(stackView5)
         
         stackView5.addArrangedSubview(bestRecipeLabel)
         
         stackView5.addArrangedSubview(seeAllButton2)
         
-        stackView1.addArrangedSubview(mealCollectionView)
+        view.addSubview(mealCollectionView)
         mealCollectionView.delegate = self
         mealCollectionView.dataSource = self
         mealCollectionView.register(MealCollectionViewCell.self,
@@ -243,17 +238,10 @@ class MealViewController: UIViewController {
     }
     
     func setupConstraints(){
-        scrollView.snp.makeConstraints { make in
-            make.leading.trailing.equalTo(view.safeAreaLayoutGuide)
-            make.top.equalTo(view.safeAreaLayoutGuide)
-            make.bottom.equalToSuperview()
-        }
-        stackView1.snp.makeConstraints { make in
-            make.height.equalTo(scrollView.contentLayoutGuide)
-            make.width.equalTo(scrollView.frameLayoutGuide)
-        }
         stackView2.snp.makeConstraints { make in
             make.height.equalTo(60)
+            make.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(20)
+            make.top.equalTo(view.safeAreaLayoutGuide)
         }
         stackView3.snp.makeConstraints { make in
             make.height.equalToSuperview()
@@ -267,17 +255,18 @@ class MealViewController: UIViewController {
         userImageView.snp.makeConstraints { make in
             make.width.height.equalTo(60)
         }
+        stackView1.snp.makeConstraints { make in
+            make.top.equalTo(view.safeAreaLayoutGuide).inset(80)
+            make.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(20)
+        }
         searchBar.snp.makeConstraints { make in
             make.height.equalTo(70)
-            make.leading.trailing.equalToSuperview().inset(15)
         }
         promoImageView.snp.makeConstraints { make in
             make.height.equalTo(140)
-            make.leading.trailing.equalToSuperview().inset(20)
         }
         stackView4.snp.makeConstraints { make in
             make.height.equalTo(50)
-            make.leading.trailing.equalToSuperview().inset(20)
         }
         categoryLabel.snp.makeConstraints { make in
             make.height.equalToSuperview()
@@ -287,9 +276,12 @@ class MealViewController: UIViewController {
         }
         categoryCollectionView.snp.makeConstraints { make in
             make.height.equalTo(70)
+            make.top.equalTo(stackView4.snp.bottom)
+            make.leading.trailing.equalToSuperview()
         }
         stackView5.snp.makeConstraints { make in
             make.height.equalTo(50)
+            make.top.equalTo(categoryCollectionView.snp.bottom).offset(15)
             make.leading.trailing.equalToSuperview().inset(20)
         }
         bestRecipeLabel.snp.makeConstraints { make in
@@ -300,7 +292,18 @@ class MealViewController: UIViewController {
         }
         mealCollectionView.snp.makeConstraints { make in
             make.height.equalTo(280)
+            make.top.equalTo(stackView5.snp.bottom)
+            make.leading.trailing.equalToSuperview()
         }
+    }
+    
+    //MARK: - Actions
+    @objc func goToCategory(_ sender: UIButton){
+        let categoryViewController = CategoryViewController()
+        categoryViewController.categoryViewModel.selectedCategory = "Beef"
+        categoryViewController.modalPresentationStyle = .fullScreen
+        categoryViewController.isModalInPresentation = true
+        present(categoryViewController, animated: true)
     }
 }
 

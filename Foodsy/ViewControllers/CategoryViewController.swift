@@ -12,24 +12,9 @@ class CategoryViewController: UIViewController {
     private var categories: [Category] = []
     
     //MARK: - UI Elements
-    private let scrollView: UIScrollView = {
-        let scrollView = UIScrollView()
-        scrollView.showsVerticalScrollIndicator = false
-        scrollView.contentInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
-        return scrollView
-    }()
-    
-    private let stackView1: UIStackView = {
-        let stackView = UIStackView()
-        stackView.axis = .vertical
-        stackView.spacing = 20
-        return stackView
-    }()
-    
     private let stackView2: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
-        stackView.backgroundColor = .blue
         return stackView
     }()
     
@@ -66,6 +51,10 @@ class CategoryViewController: UIViewController {
     private let categoryScrollView: UIScrollView = {
         let scrollView = UIScrollView()
         scrollView.showsHorizontalScrollIndicator = false
+        scrollView.contentInset = UIEdgeInsets(top: 0,
+                                               left: 20,
+                                               bottom: 0,
+                                               right: 20)
         return scrollView
     }()
     
@@ -81,6 +70,7 @@ class CategoryViewController: UIViewController {
         layout.itemSize = CGSize(width: 170,
                                  height: 220)
         layout.minimumLineSpacing = 20
+        layout.minimumInteritemSpacing = 20
         let collectionView = UICollectionView(frame: .zero,
                                               collectionViewLayout: layout)
         collectionView.backgroundColor = .white
@@ -110,15 +100,13 @@ class CategoryViewController: UIViewController {
     
     //MARK: - Setup Methods
     func setupViews(){
-        view.addSubview(scrollView)
-        scrollView.addSubview(stackView1)
-        stackView1.addArrangedSubview(stackView2)
+        view.addSubview(stackView2)
         stackView2.addArrangedSubview(backButton)
         stackView2.addArrangedSubview(categoryLabel)
         stackView2.addArrangedSubview(moreButton)
-        stackView1.addArrangedSubview(categoryScrollView)
+        view.addSubview(categoryScrollView)
         categoryScrollView.addSubview(categoryStackView)
-        stackView1.addArrangedSubview(mealCategoryCollectionView)
+        view.addSubview(mealCategoryCollectionView)
         mealCategoryCollectionView.delegate = self
         mealCategoryCollectionView.dataSource = self
         mealCategoryCollectionView.register(MealCategoryCollectionViewCell.self,
@@ -126,15 +114,9 @@ class CategoryViewController: UIViewController {
     }
     
     func setupConstraints(){
-        scrollView.snp.makeConstraints { make in
-            make.edges.equalTo(view.safeAreaLayoutGuide)
-        }
-        stackView1.snp.makeConstraints { make in
-            make.height.equalTo(scrollView.contentLayoutGuide)
-            make.width.equalTo(scrollView.frameLayoutGuide)
-        }
         stackView2.snp.makeConstraints { make in
             make.height.equalTo(50)
+            make.leading.trailing.top.equalTo(view.safeAreaLayoutGuide)
         }
         backButton.snp.makeConstraints { make in
             make.width.equalTo(50)
@@ -148,6 +130,7 @@ class CategoryViewController: UIViewController {
         categoryScrollView.snp.makeConstraints { make in
             make.height.equalTo(50)
             make.leading.trailing.equalTo(view.safeAreaLayoutGuide)
+            make.top.equalTo(stackView2.snp.bottom).offset(20)
         }
         categoryStackView.snp.makeConstraints { make in
             make.height.equalTo(categoryScrollView.frameLayoutGuide)
@@ -155,7 +138,9 @@ class CategoryViewController: UIViewController {
         }
         mealCategoryCollectionView.snp.makeConstraints { make in
             make.height.equalTo(1)
-            make.leading.trailing.equalToSuperview()
+            make.top.equalTo(categoryScrollView.snp.bottom).offset(20)
+            make.leading.trailing.equalToSuperview().inset(20)
+            make.bottom.lessThanOrEqualToSuperview().inset(20)
         }
     }
     
@@ -218,6 +203,16 @@ extension CategoryViewController: UICollectionViewDelegate,
             cell.mealNameLabel.text = name
         }
         return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let meal = categoryViewModel.meal(at: indexPath.row)
+        let mealDetailViewController = MealDetailViewController()
+        mealDetailViewController.mealDetailViewModel = MealDetailViewModel(mealId: meal.idMeal ?? "")
+        mealDetailViewController.isModalInPresentation = true
+        mealDetailViewController.modalPresentationStyle = .fullScreen
+        self.present(mealDetailViewController, animated: true)
+        
     }
     
 }

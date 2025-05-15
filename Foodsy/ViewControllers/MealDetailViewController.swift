@@ -92,6 +92,8 @@ class MealDetailViewController: UIViewController {
         let label = UILabel()
         label.textColor = .black
         label.font = .boldSystemFont(ofSize: 25)
+        label.numberOfLines = 0
+        label.lineBreakMode = .byWordWrapping
         return label
     }()
     
@@ -183,6 +185,13 @@ class MealDetailViewController: UIViewController {
         
         setupViews()
         setupConstraints()
+        
+        mealDetailViewModel.onDataUpdated = { [weak self] in
+            DispatchQueue.main.async {
+                self?.updateUI()
+            }
+        }
+        updateUI()
     }
     
     override func viewDidLayoutSubviews() {
@@ -196,9 +205,6 @@ class MealDetailViewController: UIViewController {
         view.backgroundColor = .white
         
         view.addSubview(mealImageView)
-        if let url = mealDetailViewModel.imageURL {
-            mealImageView.kf.setImage(with: url)
-        }
         view.addSubview(gradientView)
         setupGradient()
         view.addSubview(backButton)
@@ -208,7 +214,6 @@ class MealDetailViewController: UIViewController {
         detailView.addSubview(minuteButton)
         detailView.addSubview(favoriteButton)
         stackView1.addArrangedSubview(mealNameLabel)
-        mealNameLabel.text = mealDetailViewModel.mealName
         stackView1.addArrangedSubview(lineView)
         stackView1.addArrangedSubview(mealDetailView)
         mealDetailView.addSubview(stackView2)
@@ -216,7 +221,6 @@ class MealDetailViewController: UIViewController {
         stackView2.addArrangedSubview(instructionButton)
         stackView1.addArrangedSubview(textView)
         textView.addSubview(textLabel)
-        textLabel.text = mealDetailViewModel.ingredients.joined(separator: "\n")
     }
     
     func setupConstraints(){
@@ -257,7 +261,7 @@ class MealDetailViewController: UIViewController {
             make.height.width.equalTo(45)
         }
         mealNameLabel.snp.makeConstraints { make in
-            make.height.equalTo(26)
+            make.width.equalToSuperview()
         }
         lineView.snp.makeConstraints { make in
             make.height.equalTo(1)
@@ -292,6 +296,16 @@ class MealDetailViewController: UIViewController {
         gradientLayer.endPoint = CGPoint(x: 0.5,
                                          y: 0.0)
         gradientView.layer.addSublayer(gradientLayer)
+    }
+    
+    func updateUI(){
+        guard let _ = mealDetailViewModel.meal else { return }
+        
+        if let url = mealDetailViewModel.imageURL {
+            mealImageView.kf.setImage(with: url)
+        }
+        mealNameLabel.text = mealDetailViewModel.mealName
+        textLabel.text = mealDetailViewModel.ingredients.joined(separator: "\n")
     }
     
     //MARK: - Actions

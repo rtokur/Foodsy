@@ -14,7 +14,7 @@ class CategoryViewModel {
             fetchMeals()
         }
     }
-    private var meals: [Meal] = []
+    var meals: [Meal] = []
     var categories: [Category] = []
     private let mealService = MealService()
     var onDataUpdated: (() -> Void)?
@@ -54,4 +54,5 @@ class CategoryViewModel {
     var numberOfMeals: Int{
         return meals.count
     }
+    
 }

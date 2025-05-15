@@ -69,6 +69,29 @@ class MealService {
             
             do {
                 let response = try JSONDecoder().decode(MealResponse.self, from: data)
+                completion(.success(response.meals ?? []))
+            }catch{
+                completion(.failure(error))
+            }
+        }.resume()
+    }
+    
+    func fetchMealDetailById(by id: String, completion: @escaping (Result<[Meal], Error>?) -> Void){
+        let mealUrlString = "https://www.themealdb.com/api/json/v1/1/lookup.php?i=\(id)"
+        guard let url = URL(string: mealUrlString) else {
+            completion(nil)
+            return
+        }
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            guard let data = data else { return }
+            
+            do {
+                let response = try JSONDecoder().decode(MealResponse.self, from: data)
                 let respons = try JSONSerialization.jsonObject(with: data)
                 print(respons)
                 completion(.success(response.meals ?? []))
