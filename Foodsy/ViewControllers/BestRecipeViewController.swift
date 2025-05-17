@@ -133,5 +133,14 @@ extension BestRecipeViewController: UICollectionViewDelegate,
         return cell
     }
     
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let meal = bestRecipeViewModel.meal(at: indexPath.row)
+        let mealDetailViewController = MealDetailViewController()
+        mealDetailViewController.mealDetailViewModel = MealDetailViewModel(meal: meal)
+        mealDetailViewController.modalPresentationStyle = .fullScreen
+        mealDetailViewController.isModalInPresentation = true
+        present(mealDetailViewController,
+                animated: true)
+    }
     
 }

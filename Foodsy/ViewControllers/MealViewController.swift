@@ -178,7 +178,7 @@ class MealViewController: UIViewController {
                                                    right: 20)
         return collectionView
     }()
-    
+
     //MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -197,6 +197,12 @@ class MealViewController: UIViewController {
         mealViewModel.loadCategories()
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        searchBar.text = ""
+    }
+    
     //MARK: - Setup Methods
     func setupViews(){
         view.addSubview(stackView2)
@@ -211,6 +217,7 @@ class MealViewController: UIViewController {
         
         view.addSubview(stackView1)
         
+        searchBar.delegate = self
         stackView1.addArrangedSubview(searchBar)
         
         stackView1.addArrangedSubview(promoImageView)
@@ -320,7 +327,8 @@ class MealViewController: UIViewController {
 
 //MARK: - Delegates
 extension MealViewController: UICollectionViewDelegate,
-                                UICollectionViewDataSource {
+                              UICollectionViewDataSource,
+                              UISearchBarDelegate{
     func collectionView(_ collectionView: UICollectionView,
                         numberOfItemsInSection section: Int) -> Int {
         if collectionView == mealCollectionView {
@@ -377,5 +385,16 @@ extension MealViewController: UICollectionViewDelegate,
             present(categoryViewController, animated: true)
         }
     }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchText != "" {
+            let searchViewController = SearchViewController()
+            searchViewController.searchBar.text = searchText
+            searchViewController.isModalInPresentation = true
+            searchViewController.modalPresentationStyle = .fullScreen
+            present(searchViewController, animated: true)
+        }
+    }
 }
+
 
