@@ -157,6 +157,9 @@ class MealViewController: UIViewController {
                              for: .normal)
         button.titleLabel?.font = UIFont(name: "Avenir",
                                          size: 15)
+        button.addTarget(self,
+                         action: #selector(goToBestRecipe),
+                         for: .touchUpInside)
         return button
     }()
     
@@ -305,6 +308,14 @@ class MealViewController: UIViewController {
         categoryViewController.isModalInPresentation = true
         present(categoryViewController, animated: true)
     }
+    
+    @objc func goToBestRecipe(_ sender: UIButton){
+        let bestRecipeViewController = BestRecipeViewController()
+        bestRecipeViewController.bestRecipeViewModel = mealViewModel
+        bestRecipeViewController.modalPresentationStyle = .fullScreen
+        bestRecipeViewController.isModalInPresentation = true
+        present(bestRecipeViewController, animated: true)
+    }
 }
 
 //MARK: - Delegates
@@ -325,13 +336,15 @@ extension MealViewController: UICollectionViewDelegate,
                                                           for: indexPath) as! MealCollectionViewCell
             let meal = mealViewModel.meal(at: indexPath.row)
             if let mealUrl = meal.mealUrl,
-               let cuisine = meal.strArea{
+               let cuisine = meal.strArea,
+               let category = meal.strCategory{
                 cell.mealImageView.kf.setImage(with: mealUrl)
                 cell.mealNameLabel.text = meal.strMeal
-                cell.cuisineLabel.text = "from \(cuisine)"
+                cell.categoryLabel.text = "\(category)"
                 let ingredientsCount = mealViewModel.numberOfIngredients(meal: meal)
                 cell.ingredientCountButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "\(ingredientsCount) ingredients",
                                                                                                                 attributes: Constant.attributesIngredientsCount))
+                cell.cuisineButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "\(cuisine)", attributes: Constant.attributesIngredientsCount))
             }
             return cell
         }

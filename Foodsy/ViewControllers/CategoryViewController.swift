@@ -8,6 +8,7 @@
 import UIKit
 
 class CategoryViewController: UIViewController {
+    //MARK: -Properties
     var categoryViewModel = CategoryViewModel()
     private var categories: [Category] = []
     
@@ -92,7 +93,8 @@ class CategoryViewController: UIViewController {
             self.mealCategoryCollectionView.snp.updateConstraints { make in
                 make.height.equalTo(self.mealCategoryCollectionView.collectionViewLayout.collectionViewContentSize.height)
             }
-            addCategoryButtons()
+            self.addCategoryButtons()
+            
         }
         categoryViewModel.fetchMeals()
         categoryViewModel.fetchCategories()
@@ -109,7 +111,7 @@ class CategoryViewController: UIViewController {
         view.addSubview(mealCategoryCollectionView)
         mealCategoryCollectionView.delegate = self
         mealCategoryCollectionView.dataSource = self
-        mealCategoryCollectionView.register(MealCategoryCollectionViewCell.self,
+        mealCategoryCollectionView.register(MealCategoryBestRecipeCollectionViewCell.self,
                                             forCellWithReuseIdentifier: "MealCategoryCollectionViewCell")
     }
     
@@ -147,16 +149,35 @@ class CategoryViewController: UIViewController {
     func addCategoryButtons(){
         categoryStackView.arrangedSubviews.forEach{ $0.removeFromSuperview() }
         
+        var selectedButton: UIButton?
+        
         for category in categoryViewModel.categories {
-                let button = UIButton()
-                let isSelected = (category.strCategory == categoryViewModel.selectedCategory)
-                button.applyCategoryStyle(title: category.strCategory ?? "",
-                                          isSelected: isSelected)
-                button.addTarget(self,
-                                 action: #selector(categoryButtonTapped),
-                                 for: .touchUpInside)
-                categoryStackView.addArrangedSubview(button)
+            let button = UIButton()
+            let isSelected = (category.strCategory == categoryViewModel.selectedCategory)
+            button.applyCategoryStyle(title: category.strCategory ?? "",
+                                      isSelected: isSelected)
+            button.addTarget(self,
+                             action: #selector(categoryButtonTapped),
+                             for: .touchUpInside)
+            categoryStackView.addArrangedSubview(button)
+            
+            if isSelected {
+                selectedButton = button
             }
+        }
+        
+        if let selectedButton = selectedButton{
+            DispatchQueue.main.async {
+                self.categoryScrollView.layoutIfNeeded()
+                let centerX = selectedButton.center.x
+                let scrollWidth = self.categoryScrollView.bounds.width
+                var offsetX = centerX - scrollWidth / 2
+                
+                offsetX = max(0, min(offsetX, self.categoryScrollView.contentSize.width - scrollWidth))
+                self.categoryScrollView.setContentOffset(CGPoint(x: offsetX, y: 0), animated: true)
+                self.categoryScrollView.scrollRectToVisible(selectedButton.frame, animated: true)
+            }
+        }
     }
     
     func updateButtonStyles(selectedCategory: String){
@@ -183,6 +204,17 @@ class CategoryViewController: UIViewController {
         guard let selected = sender.configuration?.title else { return }
         categoryViewModel.selectedCategory = selected
         updateButtonStyles(selectedCategory: selected)
+        
+        DispatchQueue.main.async {
+            self.categoryScrollView.layoutIfNeeded()
+            let centerX = sender.center.x
+            let scrollWidth = self.categoryScrollView.bounds.width
+            var offsetX = centerX - scrollWidth / 2
+            
+            offsetX = max(0, min(offsetX, self.categoryScrollView.contentSize.width - scrollWidth))
+            self.categoryScrollView.setContentOffset(CGPoint(x: offsetX, y: 0), animated: true)
+            self.categoryScrollView.scrollRectToVisible(sender.frame, animated: true)
+        }
     }
 }
 
@@ -196,7 +228,7 @@ extension CategoryViewController: UICollectionViewDelegate,
     func collectionView(_ collectionView: UICollectionView,
                         cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "MealCategoryCollectionViewCell",
-                                                      for: indexPath) as! MealCategoryCollectionViewCell
+                                                      for: indexPath) as! MealCategoryBestRecipeCollectionViewCell
         if let url = categoryViewModel.meal(at: indexPath.row).mealUrl,
            let name = categoryViewModel.meal(at: indexPath.row).strMeal{
             cell.mealImageView.kf.setImage(with: url)

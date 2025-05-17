@@ -7,7 +7,7 @@
 
 import UIKit
 
-class MealCategoryCollectionViewCell: UICollectionViewCell {
+class MealCategoryBestRecipeCollectionViewCell: UICollectionViewCell {
     //MARK: - UI Elements
     let mealImageView: UIImageView = {
         let imageView = UIImageView()

@@ -61,17 +61,15 @@ class MealDetailViewController: UIViewController {
         return stackView
     }()
     
-    private let minuteButton: UIButton = {
+    private let cuisineButton: UIButton = {
         let button = UIButton()
         button.backgroundColor = UIColor(named: Constant.lightPink)
         button.layer.cornerRadius = 17
         button.tintColor = .black
         var configuration = UIButton.Configuration.plain()
-        configuration.attributedTitle = AttributedString(NSAttributedString(string: "40 mins",
-                                                                            attributes: Constant.attributesMinutes))
         configuration.imagePadding = 10
         let configurationImage = UIImage.SymbolConfiguration(pointSize: 13)
-        button.setImage(UIImage(systemName: "clock",
+        button.setImage(UIImage(systemName: "frying.pan",
                                 withConfiguration: configurationImage),
                         for: .normal)
         button.configuration = configuration
@@ -211,7 +209,7 @@ class MealDetailViewController: UIViewController {
         view.addSubview(detailView)
         detailView.addSubview(scrollView)
         scrollView.addSubview(stackView1)
-        detailView.addSubview(minuteButton)
+        detailView.addSubview(cuisineButton)
         detailView.addSubview(favoriteButton)
         stackView1.addArrangedSubview(mealNameLabel)
         stackView1.addArrangedSubview(lineView)
@@ -249,11 +247,11 @@ class MealDetailViewController: UIViewController {
             make.height.equalTo(scrollView.contentLayoutGuide)
             make.width.equalTo(scrollView.frameLayoutGuide)
         }
-        minuteButton.snp.makeConstraints { make in
+        cuisineButton.snp.makeConstraints { make in
             make.leading.equalTo(stackView1)
             make.top.equalToSuperview().inset(30)
             make.height.equalTo(35)
-            make.width.equalTo(120)
+            make.width.equalTo(130)
         }
         favoriteButton.snp.makeConstraints { make in
             make.trailing.equalTo(stackView1)
@@ -306,6 +304,8 @@ class MealDetailViewController: UIViewController {
         }
         mealNameLabel.text = mealDetailViewModel.mealName
         textLabel.text = mealDetailViewModel.ingredients.joined(separator: "\n")
+        cuisineButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "\(mealDetailViewModel.area)",
+                                                                            attributes: Constant.attributesMinutes))
     }
     
     //MARK: - Actions
@@ -347,7 +347,7 @@ public enum Constant {
     static let pink = "DarkPink"
     static let attributesMinutes: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 12),
                                                                    .foregroundColor: UIColor.black]
-    static let attributesIngredientsCount: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 11),
+    static let attributesIngredientsCount: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 10),
                                                                             .foregroundColor: UIColor.white]
     static let attributesIngredients: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 13),
                                                                        .foregroundColor: UIColor.white]

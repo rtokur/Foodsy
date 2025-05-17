@@ -55,4 +55,7 @@ class CategoryViewModel {
         return meals.count
     }
     
+    func indexOfFirstMealInSelectedCategory() -> Int? {
+        return meals.firstIndex { $0.strCategory == selectedCategory }
+    }
 }

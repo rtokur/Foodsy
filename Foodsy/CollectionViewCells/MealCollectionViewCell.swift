@@ -45,7 +45,7 @@ class MealCollectionViewCell: UICollectionViewCell {
         return label
     }()
     
-    let cuisineLabel: UILabel = {
+    let categoryLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 12)
         label.textColor = .white
@@ -64,22 +64,21 @@ class MealCollectionViewCell: UICollectionViewCell {
         return stackView
     }()
     
-    let minuteButton: UIButton = {
+    let cuisineButton: UIButton = {
         let button = UIButton()
-        button.setImage(UIImage(named: "clock"),
+        button.setImage(UIImage(named: "meal"),
                         for: .normal)
         button.contentHorizontalAlignment = .left
         var configuration = UIButton.Configuration.plain()
         configuration.imagePadding = 5
-        configuration.attributedTitle = AttributedString(NSAttributedString(string: "20 mins",
-                                                                            attributes: Constant.attributesIngredientsCount))
         button.configuration = configuration
         return button
     }()
     
     let ingredientCountButton: UIButton = {
         let button = UIButton()
-        button.setImage(UIImage(named: "recipe"), for: .normal)
+        button.setImage(UIImage(named: "recipe"),
+                        for: .normal)
         button.contentHorizontalAlignment = .left
         var configuration = UIButton.Configuration.plain()
         configuration.imagePadding = 5
@@ -125,13 +124,13 @@ class MealCollectionViewCell: UICollectionViewCell {
         
         stackView.addArrangedSubview(mealNameLabel)
         
-        stackView.addArrangedSubview(cuisineLabel)
+        stackView.addArrangedSubview(categoryLabel)
         
         stackView.addArrangedSubview(lineView)
         
         stackView.addArrangedSubview(stackView2)
         
-        stackView2.addArrangedSubview(minuteButton)
+        stackView2.addArrangedSubview(cuisineButton)
         
         stackView2.addArrangedSubview(ingredientCountButton)
     }
@@ -155,7 +154,7 @@ class MealCollectionViewCell: UICollectionViewCell {
         mealNameLabel.snp.makeConstraints { make in
             make.height.equalTo(23)
         }
-        cuisineLabel.snp.makeConstraints { make in
+        categoryLabel.snp.makeConstraints { make in
             make.height.equalTo(20)
         }
         lineView.snp.makeConstraints { make in
@@ -164,8 +163,8 @@ class MealCollectionViewCell: UICollectionViewCell {
         stackView2.snp.makeConstraints { make in
             make.width.equalToSuperview()
         }
-        minuteButton.snp.makeConstraints { make in
-            make.width.equalTo(90)
+        cuisineButton.snp.makeConstraints { make in
+            make.width.equalTo(95)
         }
         ingredientCountButton.snp.makeConstraints { make in
             make.height.equalToSuperview()
