@@ -345,6 +345,8 @@ class MealDetailViewController: UIViewController {
 public enum Constant {
     static let lightPink = "LightPink"
     static let pink = "DarkPink"
+    static let lightGray = "LightGray"
+    static let lightPink2 = "LightPink2"
     static let attributesMinutes: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 12),
                                                                    .foregroundColor: UIColor.black]
     static let attributesIngredientsCount: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 10),
