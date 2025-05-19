@@ -12,7 +12,16 @@ import Kingfisher
 class MealViewController: UIViewController {
     
     //MARK: - Properties
-    private let mealViewModel = MealViewModel()
+    var mealViewModel: MealViewModel
+    
+    init(mealViewModel: MealViewModel) {
+        self.mealViewModel = mealViewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     //MARK: - UI Elements
     private let stackView2: UIStackView = {
@@ -29,7 +38,6 @@ class MealViewController: UIViewController {
     
     private let userNameLabel: UILabel = {
         let label = UILabel()
-        label.text = "Anonymous"
         label.textColor = .black
         label.textAlignment = .left
         label.font = .boldSystemFont(ofSize: 20)
@@ -191,6 +199,7 @@ class MealViewController: UIViewController {
             guard let self = self else { return }
             self.mealCollectionView.reloadData()
             self.categoryCollectionView.reloadData()
+            self.userNameLabel.text = mealViewModel.userName
         }
         
         mealViewModel.loadMeals()

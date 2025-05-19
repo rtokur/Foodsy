@@ -305,7 +305,7 @@ class MealDetailViewController: UIViewController {
         mealNameLabel.text = mealDetailViewModel.mealName
         textLabel.text = mealDetailViewModel.ingredients.joined(separator: "\n")
         cuisineButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "\(mealDetailViewModel.area)",
-                                                                            attributes: Constant.attributesMinutes))
+                                                                            attributes: Constant.attributesCuisine))
     }
     
     //MARK: - Actions
@@ -347,7 +347,7 @@ public enum Constant {
     static let pink = "DarkPink"
     static let lightGray = "LightGray"
     static let lightPink2 = "LightPink2"
-    static let attributesMinutes: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 12),
+    static let attributesCuisine: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 12),
                                                                    .foregroundColor: UIColor.black]
     static let attributesIngredientsCount: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 10),
                                                                             .foregroundColor: UIColor.white]
@@ -356,4 +356,8 @@ public enum Constant {
     static let attributesInstruction: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 13),
                                                                        .foregroundColor: UIColor.lightGray]
     static let attributesCategory: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 11)]
+    static let attributesPlaceholder: [NSAttributedString.Key: Any] = [.font: UIFont.boldSystemFont(ofSize: 15),
+                                                                       .foregroundColor: UIColor.lightGray]
+    static let attributesGoogleButton: [NSAttributedString.Key: Any] = [.font: UIFont.boldSystemFont(ofSize: 16),
+                                                                        .foregroundColor: UIColor.black]
 }

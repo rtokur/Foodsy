@@ -7,6 +7,7 @@
 
 import UIKit
 import FirebaseAuth
+import FirebaseFirestore
 
 class LoginViewController: UIViewController {
     //MARK: - UI Elements
@@ -67,11 +68,14 @@ class LoginViewController: UIViewController {
     
     private let emailTextField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "example@gmail.com"
+        textField.attributedPlaceholder = NSAttributedString(string: "example@gmail.com",
+                                                             attributes: Constant.attributesPlaceholder)
         textField.textColor = .black
         textField.layer.cornerRadius = 15
         textField.tintColor = .black
-        textField.layer.borderColor = UIColor.lightGray.cgColor
+        textField.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.5).cgColor
+        textField.textContentType = .emailAddress
+        textField.autocapitalizationType = .none
         textField.layer.borderWidth = 1
         textField.font = .systemFont(ofSize: 15)
         return textField
@@ -79,22 +83,32 @@ class LoginViewController: UIViewController {
     
     private let passwordTextField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "*********"
+        textField.attributedPlaceholder = NSAttributedString(string: "*********",
+                                                             attributes: Constant.attributesPlaceholder)
         textField.textColor = .black
-        textField.layer.borderColor = UIColor.lightGray.cgColor
+        textField.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.5).cgColor
         textField.layer.borderWidth = 1
         textField.tintColor = .black
+        textField.autocapitalizationType = .none
         textField.layer.cornerRadius = 15
         textField.font = .systemFont(ofSize: 15)
+        textField.textContentType = .password
+        textField.isSecureTextEntry = true
         return textField
     }()
     
     private let signInButton: UIButton = {
         let button = UIButton()
-        button.setTitle("Sign in", for: .normal)
-        button.setTitleColor(.white, for: .normal)
+        button.setTitle("Sign in",
+                        for: .normal)
+        button.setTitleColor(.white,
+                             for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 14)
         button.backgroundColor = UIColor(named: Constant.pink)
         button.layer.cornerRadius = 26
+        button.addTarget(self,
+                         action: #selector(signInButtonAction),
+                         for: .touchUpInside)
         return button
     }()
     
@@ -102,7 +116,7 @@ class LoginViewController: UIViewController {
         let label = UILabel()
         label.text = "or login with"
         label.textColor = .black
-        label.font = .systemFont(ofSize: 10)
+        label.font = .systemFont(ofSize: 11)
         return label
     }()
     
@@ -118,12 +132,12 @@ class LoginViewController: UIViewController {
         let button = UIButton()
         var configuration = UIButton.Configuration.plain()
         configuration.attributedTitle = AttributedString(NSAttributedString(string: "Google",
-                                                                            attributes: Constant.attributesMinutes))
+                                                                            attributes: Constant.attributesGoogleButton))
         configuration.image = UIImage(named: "google")
         configuration.imagePadding = 10
         button.configuration = configuration
         button.backgroundColor = .white
-        button.layer.borderColor = UIColor.lightGray.cgColor
+        button.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.5).cgColor
         button.layer.borderWidth = 1
         button.layer.cornerRadius = 25
         return button
@@ -133,12 +147,12 @@ class LoginViewController: UIViewController {
         let button = UIButton()
         var configuration = UIButton.Configuration.plain()
         configuration.attributedTitle = AttributedString(NSAttributedString(string: "Apple",
-                                                                            attributes: Constant.attributesMinutes))
+                                                                            attributes: Constant.attributesGoogleButton))
         configuration.image = UIImage(systemName: "clock")
         configuration.imagePadding = 10
         button.configuration = configuration
         button.backgroundColor = .white
-        button.layer.borderColor = UIColor.lightGray.cgColor
+        button.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.5).cgColor
         button.layer.borderWidth = 1
         button.layer.cornerRadius = 25
         return button
@@ -168,6 +182,9 @@ class LoginViewController: UIViewController {
         button.contentHorizontalAlignment = .left
         button.titleLabel?.font = .systemFont(ofSize: 12)
         button.layer.cornerRadius = 15
+        button.addTarget(self,
+                         action: #selector(signUpButtonAction),
+                         for: .touchUpInside)
         return button
     }()
     //MARK: - Lifecycle
@@ -267,5 +284,64 @@ class LoginViewController: UIViewController {
         signUpButton.snp.makeConstraints { make in
             make.width.equalTo(120)
         }
+    }
+    
+    //MARK: - Actions
+    @objc func signInButtonAction(_ sender: UIButton){
+        guard let email = emailTextField.text,
+              let password = passwordTextField.text else {
+            let alert = UIAlertController(title: "Error",
+                                          message: "Please fill the areas.",
+                                          preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .cancel))
+            present(alert, animated: true)
+            return
+        }
+        
+        Auth.auth().signIn(withEmail: email,
+                           password: password) { [weak self] result, error in
+            if let error = error {
+                let alert = UIAlertController(title: "Error",
+                                              message: error.localizedDescription,
+                                              preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK",
+                                              style: .cancel))
+                self?.present(alert, animated: true)
+                return
+            }
+            if let user = Auth.auth().currentUser {
+                let uid = user.uid
+                let email = user.email
+                
+                let db = Firestore.firestore()
+                db.collection("users").document(uid).getDocument { snapshot, error in
+                    if let error = error {
+                        print("Not taken user from Firebase: \(error)")
+                        return
+                    }
+                    guard let data = snapshot?.data(),
+                          let username = data["username"] as? String else {
+                        print("No username info.")
+                        return
+                    }
+                    
+                    let userModel = UserModel(uid: user.uid,
+                                              email: user.email,
+                                              name: username)
+                    let mealViewModel = MealViewModel(user: userModel)
+                    let mealViewController = MealViewController(mealViewModel: mealViewModel)
+                    mealViewController.modalPresentationStyle = .fullScreen
+                    mealViewController.isModalInPresentation = true
+                    self?.present(mealViewController, animated: true)
+                }
+            }
+        }
+    }
+    
+    @objc func signUpButtonAction(_ sender: UIButton){
+        let signUpViewController = SignUpViewController()
+        signUpViewController.isModalInPresentation = true
+        signUpViewController.modalPresentationStyle = .fullScreen
+        present(signUpViewController, animated: true)
     }
 }

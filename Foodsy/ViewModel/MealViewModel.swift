@@ -16,7 +16,17 @@ class MealViewModel{
     var categories: [Category] = []
     
     var onDataUpdated: (() -> Void)?
-
+    
+    let user: UserModel
+    
+    init(user: UserModel) {
+        self.user = user
+    }
+    
+    var userName: String {
+        return user.name
+    }
+    
     //MARK: - Functions
     func loadMeals(){
         mealService.fetchFoods { [weak self] meals in
