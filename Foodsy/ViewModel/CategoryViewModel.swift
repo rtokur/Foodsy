@@ -17,9 +17,17 @@ class CategoryViewModel {
         }
     }
     var meals: [Meal] = []
+    var favoriteMeals: [Meal] = []
     var categories: [Category] = []
     private let mealService = MealService()
     var onDataUpdated: (() -> Void)?
+    private let favoriteService: FavoriteServiceProtocol
+    private let user: UserModel
+    
+    init(user: UserModel, favoriteService: FavoriteServiceProtocol = FavoriteService()) {
+        self.user = user
+        self.favoriteService = favoriteService
+    }
     
     //MARK: - Functions
     func fetchMeals(){
@@ -61,19 +69,28 @@ class CategoryViewModel {
         return meals.firstIndex { $0.strCategory == selectedCategory }
     }
     
-    func addMealToFavorites(_ meal: Meal) {
-        let db = Firestore.firestore()
-        guard let currentUserId = Auth.auth().currentUser?.uid else { return }
-        
-        let mealData: [String: Any] = ["id": meal.idMeal,
-                                       "imageUrl": meal.strMealThumb,
-                                       "name": meal.strMeal]
-        db.collection("users").document(currentUserId).collection("favorites").addDocument(data: mealData) { error in
-            if let error = error {
-                print("favorite saving failed.",
-                      error.localizedDescription)
-            }else {
-                print("favorite saved succesfully.")
+    func isFavorite(_ meal: Meal) -> Bool {
+        return favoriteMeals.contains(where: { $0.idMeal == meal.idMeal })
+    }
+    
+    func addMealToFavorites(_ meal: Meal, completion: @escaping (Bool) -> Void) {
+        favoriteService.addFavorite(meal, userId: user.uid) { success in
+            if success {
+                print("Meal added to favorites")
+            } else {
+                print("Failed to add to favorites")
+            }
+            DispatchQueue.main.async {
+                completion(success)
+            }
+        }
+    }
+    
+    func loadFavorites(completion: @escaping () -> Void) {
+        favoriteService.fetchFavorites(for: user.uid) { [weak self] meals in
+            self?.favoriteMeals = meals
+            DispatchQueue.main.async {
+                completion()
             }
         }
     }

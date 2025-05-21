@@ -145,10 +145,15 @@ extension FavoriteViewController: UICollectionViewDelegate,
                         cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "FavoriteCollectionViewCell",
                                                       for: indexPath) as! FavoriteCollectionViewCell
-        if let url = favoriteViewModel.getFavorites(at: indexPath.row).mealUrl,
-           let name = favoriteViewModel.getFavorites(at: indexPath.row).strMeal{
+        let meal = favoriteViewModel.getFavorites(at: indexPath.row)
+        if let url = meal.mealUrl,
+           let name = meal.strMeal{
             cell.favoriteImageView.kf.setImage(with: url)
             cell.favoriteLabel.text = name
+        }
+        cell.isFavorite = favoriteViewModel.isMealFavorite(meal)
+        cell.onFavoriteTapped = { [weak self] in
+            self?.favoriteViewModel.toggleFavorite(for: meal)
         }
         return cell
     }

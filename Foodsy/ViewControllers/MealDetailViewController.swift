@@ -239,7 +239,7 @@ class MealDetailViewController: UIViewController {
         }
         detailView.snp.makeConstraints { make in
             make.leading.trailing.bottom.equalToSuperview()
-            make.top.equalTo(mealImageView.snp.bottom).inset(26)
+            make.top.equalTo(mealImageView.snp.bottom).inset(24)
         }
         scrollView.snp.makeConstraints { make in
             make.leading.trailing.equalTo(detailView).inset(30)

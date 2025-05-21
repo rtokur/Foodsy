@@ -200,6 +200,9 @@ class MealViewController: UIViewController {
         
         setupConstraints()
         
+        mealViewModel.loadFavorites { [weak self] in
+            self?.mealViewModel.loadMeals()
+        }
         mealViewModel.onDataUpdated = { [weak self] in
             guard let self = self else { return }
             self.mealCollectionView.reloadData()
@@ -208,8 +211,6 @@ class MealViewController: UIViewController {
                                                                                                     attributes: [.font: UIFont.boldSystemFont(ofSize: 20),
                                                                                                                  .foregroundColor: UIColor.black]))
         }
-        
-        mealViewModel.loadMeals()
         mealViewModel.loadCategories()
         configureMenu()
     }
@@ -343,7 +344,9 @@ class MealViewController: UIViewController {
     
     //MARK: - Actions
     @objc func goToCategory(_ sender: UIButton){
-        let categoryViewController = CategoryViewController()
+        let userModel = self.mealViewModel.user
+        let categoryViewModel = CategoryViewModel(user: userModel)
+        let categoryViewController = CategoryViewController(categoryViewModel: categoryViewModel)
         categoryViewController.categoryViewModel.selectedCategory = "Beef"
         categoryViewController.modalPresentationStyle = .fullScreen
         categoryViewController.isModalInPresentation = true
@@ -389,6 +392,7 @@ extension MealViewController: UICollectionViewDelegate,
                 cell.cuisineButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "\(cuisine)",
                                                                                                         attributes: Constant.attributesIngredientsCount))
             }
+            cell.setFavoriteState(isFavorite: mealViewModel.isFavorite(meal))
             cell.delegate = self
             return cell
         }
@@ -414,7 +418,9 @@ extension MealViewController: UICollectionViewDelegate,
                     animated: true)
         }else{
             let category = mealViewModel.category(at: indexPath.row).strCategory ?? ""
-            let categoryViewController = CategoryViewController()
+            let userModel = self.mealViewModel.user
+            let categoryViewModel = CategoryViewModel(user: userModel)
+            let categoryViewController = CategoryViewController(categoryViewModel: categoryViewModel)
             categoryViewController.categoryViewModel.selectedCategory = category
             categoryViewController.modalPresentationStyle = .fullScreen
             categoryViewController.isModalInPresentation = true
@@ -437,6 +443,10 @@ extension MealViewController: MealCellDelegate {
     func didTapFavorite(on cell: MealCollectionViewCell) {
         guard let indexPath = mealCollectionView.indexPath(for: cell) else { return }
         let meal = mealViewModel.meal(at: indexPath.item)
-        mealViewModel.addMealToFavorites(meal)
+        mealViewModel.toggleFavoriteState(for: meal) { [weak self] in
+            guard let self = self else { return }
+            let updatedIsFavorite = self.mealViewModel.isFavorite(meal)
+            cell.setFavoriteState(isFavorite: updatedIsFavorite)
+        }
     }
 }

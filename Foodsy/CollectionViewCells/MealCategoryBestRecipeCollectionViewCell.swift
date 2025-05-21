@@ -12,6 +12,7 @@ protocol MealCategoryBestRecipeCellDelegate: AnyObject {
 }
 
 class MealCategoryBestRecipeCollectionViewCell: UICollectionViewCell {
+    
     //MARK: - UI Elements
     let mealImageView: UIImageView = {
         let imageView = UIImageView()
@@ -110,6 +111,14 @@ class MealCategoryBestRecipeCollectionViewCell: UICollectionViewCell {
         gradientLayer.endPoint = CGPoint(x: 0.5,
                                          y: 0.0)
         gradientView.layer.addSublayer(gradientLayer)
+    }
+    
+    func setFavoriteState(isFavorite: Bool){
+        let configuration = UIImage.SymbolConfiguration(pointSize: 23)
+        let imageName = isFavorite ? "heart.fill" : "heart"
+        favoriteButton.setImage(UIImage(systemName: imageName,
+                                        withConfiguration: configuration),
+                                for: .normal)
     }
     
     //MARK: - Actions

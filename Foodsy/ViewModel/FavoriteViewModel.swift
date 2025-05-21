@@ -2,6 +2,7 @@ import FirebaseFirestore
 
 class FavoriteViewModel {
     private(set) var allFavorites: [Meal] = []
+    private let favoriteService = FavoriteService()
     var onDataUpdated: (() -> Void)?
     
     let user: UserModel
@@ -47,5 +48,33 @@ class FavoriteViewModel {
     
     func numberOfFavorites() -> Int {
         return allFavorites.count
+    }
+    
+    func isMealFavorite(_ meal: Meal) -> Bool {
+        return allFavorites.contains(where: { $0.idMeal == meal.idMeal })
+    }
+    
+    func toggleFavorite(for meal: Meal) {
+        if isMealFavorite(meal){
+            favoriteService.removeFavorite(meal, userId: user.uid) { [weak self] success in
+                guard let self = self else { return }
+                if success {
+                    self.allFavorites.removeAll(where: { $0.idMeal == meal.idMeal })
+                    DispatchQueue.main.async {
+                        self.onDataUpdated?()
+                    }
+                }
+            }
+        }else {
+            favoriteService.addFavorite(meal, userId: user.uid) { [weak self] success in
+                guard let self = self else { return }
+                if success {
+                    self.allFavorites.append(meal)
+                    DispatchQueue.main.async {
+                        self.onDataUpdated?()
+                    }
+                }
+            }
+        }
     }
 }

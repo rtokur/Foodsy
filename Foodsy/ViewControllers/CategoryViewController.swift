@@ -9,9 +9,17 @@ import UIKit
 
 class CategoryViewController: UIViewController {
     //MARK: -Properties
-    var categoryViewModel = CategoryViewModel()
+    var categoryViewModel: CategoryViewModel
     private var categories: [Category] = []
     
+    init(categoryViewModel: CategoryViewModel) {
+        self.categoryViewModel = categoryViewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     //MARK: - UI Elements
     private let stackView2: UIStackView = {
         let stackView = UIStackView()
@@ -86,6 +94,9 @@ class CategoryViewController: UIViewController {
         setupViews()
         setupConstraints()
         
+        categoryViewModel.loadFavorites { [weak self] in
+            self?.categoryViewModel.fetchMeals()
+        }
         categoryViewModel.onDataUpdated = { [weak self] in
             guard let self = self else { return }
             self.mealCategoryCollectionView.reloadData()
@@ -95,7 +106,6 @@ class CategoryViewController: UIViewController {
             self.addCategoryButtons()
             
         }
-        categoryViewModel.fetchMeals()
         categoryViewModel.fetchCategories()
     }
     
@@ -229,11 +239,13 @@ extension CategoryViewController: UICollectionViewDelegate,
                         cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "MealCategoryBestRecipeCollectionViewCell",
                                                       for: indexPath) as! MealCategoryBestRecipeCollectionViewCell
-        if let url = categoryViewModel.meal(at: indexPath.row).mealUrl,
-           let name = categoryViewModel.meal(at: indexPath.row).strMeal{
+        let meal = categoryViewModel.meal(at: indexPath.row)
+        if let url = meal.mealUrl,
+           let name = meal.strMeal{
             cell.mealImageView.kf.setImage(with: url)
             cell.mealNameLabel.text = name
         }
+        cell.setFavoriteState(isFavorite: categoryViewModel.isFavorite(meal))
         cell.delegate = self
         return cell
     }
@@ -281,6 +293,10 @@ extension CategoryViewController: MealCategoryBestRecipeCellDelegate {
     func didTapFavorite(on cell: MealCategoryBestRecipeCollectionViewCell) {
         guard let indexPath = mealCategoryCollectionView.indexPath(for: cell) else { return }
         let meal = categoryViewModel.meal(at: indexPath.item)
-        categoryViewModel.addMealToFavorites(meal)
+        categoryViewModel.addMealToFavorites(meal) { success in
+            if success {
+                cell.setFavoriteState(isFavorite: true)
+            }
+        }
     }
 }

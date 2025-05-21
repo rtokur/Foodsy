@@ -21,7 +21,8 @@ class MealCollectionViewCell: UICollectionViewCell {
         let button = UIButton()
         button.backgroundColor = .lightGray.withAlphaComponent(0.2)
         let configuration = UIImage.SymbolConfiguration(pointSize: 23)
-        button.setImage(UIImage(systemName: "heart", withConfiguration: configuration),
+        button.setImage(UIImage(systemName: "heart",
+                                withConfiguration: configuration),
                         for: .normal)
         button.tintColor = .white
         button.layer.cornerRadius = 20
@@ -189,6 +190,13 @@ class MealCollectionViewCell: UICollectionViewCell {
         gradientView.layer.addSublayer(gradientLayer)
     }
     
+    func setFavoriteState(isFavorite: Bool){
+        let configuration = UIImage.SymbolConfiguration(pointSize: 23)
+        let imageName = isFavorite ? "heart.fill" : "heart"
+        favoriteButton.setImage(UIImage(systemName: imageName,
+                                        withConfiguration: configuration),
+                                for: .normal)
+    }
     // MARK: - Action
     @objc private func favoriteButtonTapped() {
         delegate?.didTapFavorite(on: self)

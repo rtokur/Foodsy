@@ -8,6 +8,7 @@
 import Foundation
 
 class MealService {
+    
     //MARK: - Functions
     func fetchFoods(completion: @escaping([Meal]?) -> Void){
         let foodUrlString = "https://www.themealdb.com/api/json/v1/1/search.php?s="
@@ -115,8 +116,6 @@ class MealService {
             
             do{
                 let response = try JSONDecoder().decode(MealResponse.self, from: data)
-                let respons = try JSONSerialization.jsonObject(with: data)
-                print(respons)
                 completion(.success(response.meals ?? []))
             }catch{
                 completion(.failure(error))

@@ -83,17 +83,22 @@ class SearchViewModel {
     func addMealToFavorites(_ meal: Meal) {
         let db = Firestore.firestore()
         guard let currentUserId = Auth.auth().currentUser?.uid else { return }
-        
-        let mealData: [String: Any] = ["id": meal.idMeal,
-                                       "imageUrl": meal.strMealThumb,
-                                       "name": meal.strMeal]
-        db.collection("users").document(currentUserId).collection("favorites").addDocument(data: mealData) { error in
-            if let error = error {
-                print("favorite saving failed.",
-                      error.localizedDescription)
-            }else {
-                print("favorite saved succesfully.")
+        if let id = meal.idMeal,
+           let imageUrl = meal.strMealThumb,
+           let name = meal.strMeal{
+            let mealData: [String: Any] = ["id": id,
+                                           "imageUrl": imageUrl,
+                                           "name": name,
+                                           "isFavorite": true]
+            db.collection("users").document(currentUserId).collection("favorites").document(id).setData(mealData) { error in
+                if let error = error {
+                    print("favorite saving failed.",
+                          error.localizedDescription)
+                }else {
+                    print("favorite saved succesfully.")
+                }
             }
         }
+        
     }
 }

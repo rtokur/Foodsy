@@ -150,6 +150,10 @@ extension BestRecipeViewController: MealCategoryBestRecipeCellDelegate {
     func didTapFavorite(on cell: MealCategoryBestRecipeCollectionViewCell) {
         guard let indexPath = bestRecipeCategoryCollectionView.indexPath(for: cell) else { return }
         let meal = bestRecipeViewModel.meal(at: indexPath.item)
-        bestRecipeViewModel.addMealToFavorites(meal)
+        bestRecipeViewModel.toggleFavoriteState(for: meal) { [weak self] in
+            guard let self = self else { return }
+            let updatedIsFavorite = self.bestRecipeViewModel.isFavorite(meal)
+            cell.setFavoriteState(isFavorite: updatedIsFavorite)
+        }
     }
 }
