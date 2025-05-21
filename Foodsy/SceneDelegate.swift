@@ -6,6 +6,8 @@
 //
 
 import UIKit
+import FirebaseAuth
+import FirebaseFirestore
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
@@ -14,9 +16,18 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         let window = UIWindow(windowScene: windowScene)
-        window.rootViewController = LoginViewController()
         self.window = window
-        window.makeKeyAndVisible()
+        AuthManager.getCurrentUser { userModel in
+            DispatchQueue.main.async {
+                if let userModel = userModel {
+                    let mealViewModel = MealViewModel(user: userModel)
+                    window.rootViewController = MealViewController(mealViewModel: mealViewModel)
+                }else {
+                    window.rootViewController = LoginViewController()
+                }
+                window.makeKeyAndVisible()
+            }
+        }
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

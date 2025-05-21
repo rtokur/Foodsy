@@ -63,7 +63,6 @@ class BestRecipeViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
         setupViews()
         setupConstraints()
         // Do any additional setup after loading the view.
@@ -77,6 +76,7 @@ class BestRecipeViewController: UIViewController {
     }
     //MARK: - Setup Methods
     func setupViews(){
+        view.backgroundColor = .white
         view.addSubview(stackView1)
         stackView1.addArrangedSubview(backButton)
         stackView1.addArrangedSubview(categoryLabel)
@@ -130,6 +130,7 @@ extension BestRecipeViewController: UICollectionViewDelegate,
             cell.mealImageView.kf.setImage(with: url)
             cell.mealNameLabel.text = name
         }
+        cell.delegate = self
         return cell
     }
     
@@ -143,4 +144,12 @@ extension BestRecipeViewController: UICollectionViewDelegate,
                 animated: true)
     }
     
+}
+
+extension BestRecipeViewController: MealCategoryBestRecipeCellDelegate {
+    func didTapFavorite(on cell: MealCategoryBestRecipeCollectionViewCell) {
+        guard let indexPath = bestRecipeCategoryCollectionView.indexPath(for: cell) else { return }
+        let meal = bestRecipeViewModel.meal(at: indexPath.item)
+        bestRecipeViewModel.addMealToFavorites(meal)
+    }
 }

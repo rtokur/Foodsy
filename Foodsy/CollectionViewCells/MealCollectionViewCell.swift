@@ -6,7 +6,9 @@
 //
 
 import UIKit
-
+protocol MealCellDelegate: AnyObject {
+    func didTapFavorite(on cell: MealCollectionViewCell)
+}
 class MealCollectionViewCell: UICollectionViewCell {
     //MARK: - UI Elements
     let mealImageView: UIImageView = {
@@ -23,6 +25,9 @@ class MealCollectionViewCell: UICollectionViewCell {
                         for: .normal)
         button.tintColor = .white
         button.layer.cornerRadius = 20
+        button.addTarget(self,
+                         action: #selector(favoriteButtonTapped),
+                         for: .touchUpInside)
         return button
     }()
     
@@ -90,6 +95,9 @@ class MealCollectionViewCell: UICollectionViewCell {
         let gradientLayer = CAGradientLayer()
         return gradientLayer
     }()
+    
+    // MARK: - Delegate
+    weak var delegate: MealCellDelegate?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -179,5 +187,10 @@ class MealCollectionViewCell: UICollectionViewCell {
         gradientLayer.endPoint = CGPoint(x: 0.5,
                                          y: 0.0)
         gradientView.layer.addSublayer(gradientLayer)
+    }
+    
+    // MARK: - Action
+    @objc private func favoriteButtonTapped() {
+        delegate?.didTapFavorite(on: self)
     }
 }

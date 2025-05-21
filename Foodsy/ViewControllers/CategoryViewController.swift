@@ -83,7 +83,6 @@ class CategoryViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        view.backgroundColor = .white
         setupViews()
         setupConstraints()
         
@@ -102,6 +101,7 @@ class CategoryViewController: UIViewController {
     
     //MARK: - Setup Methods
     func setupViews(){
+        view.backgroundColor = .white
         view.addSubview(stackView2)
         stackView2.addArrangedSubview(backButton)
         stackView2.addArrangedSubview(categoryLabel)
@@ -112,7 +112,7 @@ class CategoryViewController: UIViewController {
         mealCategoryCollectionView.delegate = self
         mealCategoryCollectionView.dataSource = self
         mealCategoryCollectionView.register(MealCategoryBestRecipeCollectionViewCell.self,
-                                            forCellWithReuseIdentifier: "MealCategoryCollectionViewCell")
+                                            forCellWithReuseIdentifier: "MealCategoryBestRecipeCollectionViewCell")
     }
     
     func setupConstraints(){
@@ -227,13 +227,14 @@ extension CategoryViewController: UICollectionViewDelegate,
     
     func collectionView(_ collectionView: UICollectionView,
                         cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "MealCategoryCollectionViewCell",
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "MealCategoryBestRecipeCollectionViewCell",
                                                       for: indexPath) as! MealCategoryBestRecipeCollectionViewCell
         if let url = categoryViewModel.meal(at: indexPath.row).mealUrl,
            let name = categoryViewModel.meal(at: indexPath.row).strMeal{
             cell.mealImageView.kf.setImage(with: url)
             cell.mealNameLabel.text = name
         }
+        cell.delegate = self
         return cell
     }
     
@@ -273,5 +274,13 @@ extension UIButton {
         self.clipsToBounds = true
         self.titleLabel?.font = font
         
+    }
+}
+
+extension CategoryViewController: MealCategoryBestRecipeCellDelegate {
+    func didTapFavorite(on cell: MealCategoryBestRecipeCollectionViewCell) {
+        guard let indexPath = mealCategoryCollectionView.indexPath(for: cell) else { return }
+        let meal = categoryViewModel.meal(at: indexPath.item)
+        categoryViewModel.addMealToFavorites(meal)
     }
 }

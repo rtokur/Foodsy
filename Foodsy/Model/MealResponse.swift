@@ -7,76 +7,77 @@
 
 import Foundation
 
-class MealResponse: Codable {
+struct MealResponse: Codable {
     let meals: [Meal]?
 }
 
-class Meal: Codable{
-    let idMeal: String?
-    
-    let strMeal: String?
-    
-    let strMealThumb: String?
-    
-    let strInstructions: String?
-    
-    let strCategory: String?
-    
-    let strArea: String?
-    
-    let strIngredient1: String?
-    let strIngredient2: String?
-    let strIngredient3: String?
-    let strIngredient4: String?
-    let strIngredient5: String?
-    let strIngredient6: String?
-    let strIngredient7: String?
-    let strIngredient8: String?
-    let strIngredient9: String?
-    let strIngredient10: String?
-    let strIngredient11: String?
-    let strIngredient12: String?
-    let strIngredient13: String?
-    let strIngredient14: String?
-    let strIngredient15: String?
-    let strIngredient16: String?
-    let strIngredient17: String?
-    let strIngredient18: String?
-    let strIngredient19: String?
-    let strIngredient20: String?
+struct Meal: Codable{
+    var idMeal: String?
+     var strMeal: String?
+     var strMealThumb: String?
+     var strInstructions: String?
+     var strCategory: String?
+     var strArea: String?
 
-    let strMeasure1: String?
-    let strMeasure2: String?
-    let strMeasure3: String?
-    let strMeasure4: String?
-    let strMeasure5: String?
-    let strMeasure6: String?
-    let strMeasure7: String?
-    let strMeasure8: String?
-    let strMeasure9: String?
-    let strMeasure10: String?
-    let strMeasure11: String?
-    let strMeasure12: String?
-    let strMeasure13: String?
-    let strMeasure14: String?
-    let strMeasure15: String?
-    let strMeasure16: String?
-    let strMeasure17: String?
-    let strMeasure18: String?
-    let strMeasure19: String?
-    let strMeasure20: String?
+     var strIngredient1: String?
+     var strIngredient2: String?
+     var strIngredient3: String?
+     var strIngredient4: String?
+     var strIngredient5: String?
+     var strIngredient6: String?
+     var strIngredient7: String?
+     var strIngredient8: String?
+     var strIngredient9: String?
+     var strIngredient10: String?
+     var strIngredient11: String?
+     var strIngredient12: String?
+     var strIngredient13: String?
+     var strIngredient14: String?
+     var strIngredient15: String?
+     var strIngredient16: String?
+     var strIngredient17: String?
+     var strIngredient18: String?
+     var strIngredient19: String?
+     var strIngredient20: String?
+
+     var strMeasure1: String?
+     var strMeasure2: String?
+     var strMeasure3: String?
+     var strMeasure4: String?
+     var strMeasure5: String?
+     var strMeasure6: String?
+     var strMeasure7: String?
+     var strMeasure8: String?
+     var strMeasure9: String?
+     var strMeasure10: String?
+     var strMeasure11: String?
+     var strMeasure12: String?
+     var strMeasure13: String?
+     var strMeasure14: String?
+     var strMeasure15: String?
+     var strMeasure16: String?
+     var strMeasure17: String?
+     var strMeasure18: String?
+     var strMeasure19: String?
+     var strMeasure20: String?
     
     var mealUrl: URL? {
         guard let url = strMealThumb else { return nil }
         return URL(string: url)
     }
+    
+    init(idMeal: String?, strMeal: String?, strMealThumb: String?) {
+        self.idMeal = idMeal
+        self.strMeal = strMeal
+        self.strMealThumb = strMealThumb
+    }
 }
 
-class CategoryResponse: Codable{
+struct CategoryResponse: Codable{
     let categories: [Category]?
 }
 
-class Category: Codable{
+struct Category: Codable{
     let idCategory: String?
     let strCategory: String?
     let strCategoryThumb: String?

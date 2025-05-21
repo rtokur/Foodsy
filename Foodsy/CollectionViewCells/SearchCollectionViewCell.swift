@@ -7,6 +7,10 @@
 
 import UIKit
 
+protocol SearchCellDelegate: AnyObject {
+    func didTapFavorite(on cell: SearchCollectionViewCell)
+}
+
 class SearchCollectionViewCell: UICollectionViewCell {
     
     let stackView: UIStackView = {
@@ -54,8 +58,14 @@ class SearchCollectionViewCell: UICollectionViewCell {
         let configuration = UIImage.SymbolConfiguration(pointSize: 20)
         button.setImage(UIImage(systemName: "heart", withConfiguration: configuration), for: .normal)
         button.layer.cornerRadius = 20
+        button.addTarget(self,
+                         action: #selector(favoriteButtonTapped),
+                         for: .touchUpInside)
         return button
     }()
+    
+    // MARK: - Delegate
+    weak var delegate: SearchCellDelegate?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -102,4 +112,8 @@ class SearchCollectionViewCell: UICollectionViewCell {
         }
     }
     
+    // MARK: - Action
+    @objc private func favoriteButtonTapped() {
+        delegate?.didTapFavorite(on: self)
+    }
 }

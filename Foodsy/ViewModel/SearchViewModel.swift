@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import FirebaseFirestore
+import FirebaseAuth
 
 class SearchViewModel {
     //MARK: - Properties
@@ -76,5 +78,22 @@ class SearchViewModel {
             }
         }
         return result
+    }
+    
+    func addMealToFavorites(_ meal: Meal) {
+        let db = Firestore.firestore()
+        guard let currentUserId = Auth.auth().currentUser?.uid else { return }
+        
+        let mealData: [String: Any] = ["id": meal.idMeal,
+                                       "imageUrl": meal.strMealThumb,
+                                       "name": meal.strMeal]
+        db.collection("users").document(currentUserId).collection("favorites").addDocument(data: mealData) { error in
+            if let error = error {
+                print("favorite saving failed.",
+                      error.localizedDescription)
+            }else {
+                print("favorite saved succesfully.")
+            }
+        }
     }
 }

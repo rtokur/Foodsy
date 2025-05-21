@@ -7,6 +7,10 @@
 
 import UIKit
 
+protocol MealCategoryBestRecipeCellDelegate: AnyObject {
+    func didTapFavorite(on cell: MealCategoryBestRecipeCollectionViewCell)
+}
+
 class MealCategoryBestRecipeCollectionViewCell: UICollectionViewCell {
     //MARK: - UI Elements
     let mealImageView: UIImageView = {
@@ -40,10 +44,18 @@ class MealCategoryBestRecipeCollectionViewCell: UICollectionViewCell {
         button.tintColor = .white
         button.backgroundColor = .white.withAlphaComponent(0.2)
         let configuration = UIImage.SymbolConfiguration(pointSize: 20)
-        button.setImage(UIImage(systemName: "heart", withConfiguration: configuration), for: .normal)
+        button.setImage(UIImage(systemName: "heart",
+                                withConfiguration: configuration),
+                        for: .normal)
         button.layer.cornerRadius = 20
+        button.addTarget(self,
+                         action: #selector(favoriteButtonTapped),
+                         for: .touchUpInside)
         return button
     }()
+    
+    weak var delegate: MealCategoryBestRecipeCellDelegate?
+    
     //MARK: - Lifecycle
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -98,5 +110,10 @@ class MealCategoryBestRecipeCollectionViewCell: UICollectionViewCell {
         gradientLayer.endPoint = CGPoint(x: 0.5,
                                          y: 0.0)
         gradientView.layer.addSublayer(gradientLayer)
+    }
+    
+    //MARK: - Actions
+    @objc private func favoriteButtonTapped() {
+        delegate?.didTapFavorite(on: self)
     }
 }

@@ -8,6 +8,7 @@
 import UIKit
 import FirebaseAuth
 import FirebaseFirestore
+import SkyFloatingLabelTextField
 
 class LoginViewController: UIViewController {
     //MARK: - UI Elements
@@ -67,34 +68,42 @@ class LoginViewController: UIViewController {
     }()
     
     private let emailTextField: UITextField = {
-        let textField = UITextField()
-        textField.attributedPlaceholder = NSAttributedString(string: "example@gmail.com",
-                                                             attributes: Constant.attributesPlaceholder)
+        let textField = SkyFloatingLabelTextField()
+        textField.title = "email"
         textField.textColor = .black
-        textField.layer.cornerRadius = 15
-        textField.tintColor = .black
-        textField.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.5).cgColor
-        textField.textContentType = .emailAddress
         textField.autocapitalizationType = .none
-        textField.layer.borderWidth = 1
-        textField.font = .systemFont(ofSize: 15)
+        textField.titleColor = UIColor(named: Constant.lightPink2)!
+        textField.selectedTitleColor = UIColor(named: Constant.pink)!
+        textField.selectedLineColor = .lightGray
+        textField.placeholder = "example@gmail.com"
+        textField.textContentType = .emailAddress
         return textField
     }()
     
     private let passwordTextField: UITextField = {
-        let textField = UITextField()
-        textField.attributedPlaceholder = NSAttributedString(string: "*********",
-                                                             attributes: Constant.attributesPlaceholder)
+        let textField = SkyFloatingLabelTextField()
+        textField.title = "password"
         textField.textColor = .black
-        textField.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.5).cgColor
-        textField.layer.borderWidth = 1
-        textField.tintColor = .black
         textField.autocapitalizationType = .none
-        textField.layer.cornerRadius = 15
-        textField.font = .systemFont(ofSize: 15)
-        textField.textContentType = .password
+        textField.titleColor = UIColor(named: Constant.lightPink2)!
+        textField.selectedTitleColor = UIColor(named: Constant.pink)!
+        textField.selectedLineColor = .lightGray
+        textField.placeholder = "*********"
         textField.isSecureTextEntry = true
+        textField.textContentType = .password
         return textField
+    }()
+    
+    private let toggleEyeButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage(systemName: "eye.slash"),
+                        for: .normal)
+        button.tintColor = .gray
+        button.addTarget(self,
+                         action: #selector(toogleEyeButtonAction),
+                         for: .touchUpInside)
+        button.frame = CGRect(x: 0, y: 0, width: 30, height: 30)
+        return button
     }()
     
     private let signInButton: UIButton = {
@@ -181,7 +190,7 @@ class LoginViewController: UIViewController {
         button.setTitleColor(UIColor(named: Constant.pink), for: .normal)
         button.contentHorizontalAlignment = .left
         button.titleLabel?.font = .systemFont(ofSize: 12)
-        button.layer.cornerRadius = 15
+        button.layer.cornerRadius = 25
         button.addTarget(self,
                          action: #selector(signUpButtonAction),
                          for: .touchUpInside)
@@ -190,13 +199,13 @@ class LoginViewController: UIViewController {
     //MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor(named: Constant.lightGray)
         setupViews()
         setupConstraints()
     }
     
     //MARK: - Setup Methods
     func setupViews(){
+        view.backgroundColor = UIColor(named: Constant.lightGray)
         view.addSubview(colorView)
         view.addSubview(reflectionView)
         view.addSubview(loginView)
@@ -205,13 +214,9 @@ class LoginViewController: UIViewController {
         stackView.addArrangedSubview(signInLabel)
         stackView.addArrangedSubview(loginLabel)
         stackView.addArrangedSubview(emailTextField)
-        let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 18, height: emailTextField.frame.height))
-        emailTextField.leftView = paddingView
-        emailTextField.leftViewMode = .always
         stackView.addArrangedSubview(passwordTextField)
-        let paddingView2 = UIView(frame: CGRect(x: 0, y: 0, width: 18, height: passwordTextField.frame.height))
-        passwordTextField.leftView = paddingView2
-        passwordTextField.leftViewMode = .always
+        passwordTextField.rightView = toggleEyeButton
+        passwordTextField.rightViewMode = .always
         stackView.addArrangedSubview(signInButton)
         stackView.addArrangedSubview(orLoginWithLabel)
         stackView.addArrangedSubview(stackView2)
@@ -293,7 +298,8 @@ class LoginViewController: UIViewController {
             let alert = UIAlertController(title: "Error",
                                           message: "Please fill the areas.",
                                           preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .cancel))
+            alert.addAction(UIAlertAction(title: "OK",
+                                          style: .cancel))
             present(alert, animated: true)
             return
         }
@@ -340,8 +346,16 @@ class LoginViewController: UIViewController {
     
     @objc func signUpButtonAction(_ sender: UIButton){
         let signUpViewController = SignUpViewController()
-        signUpViewController.isModalInPresentation = true
         signUpViewController.modalPresentationStyle = .fullScreen
+        signUpViewController.isModalInPresentation = true
         present(signUpViewController, animated: true)
+    }
+    
+    @objc func toogleEyeButtonAction(_ sender: UIButton) {
+        passwordTextField.isSecureTextEntry.toggle()
+        
+        let imageName = passwordTextField.isSecureTextEntry ? "eye.slash" : "eye"
+        toggleEyeButton.setImage(UIImage(systemName: imageName),
+                                 for: .normal)
     }
 }

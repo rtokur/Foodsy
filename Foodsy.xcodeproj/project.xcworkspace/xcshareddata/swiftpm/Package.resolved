@@ -1,5 +1,5 @@
 {
-  "originHash" : "53cce51ec12a36a7c5098345466337eedcaf16d03d5cb7681bb7a37e991b8d67",
+  "originHash" : "c5d2d10739fb6be7088f58fedb5c140b82f35b5d2ee8417458a60b45f4c55f7e",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -116,6 +116,15 @@
       "state" : {
         "revision" : "540318ecedd63d883069ae7f1ed811a2df00b6ac",
         "version" : "2.4.0"
+      }
+    },
+    {
+      "identity" : "skyfloatinglabeltextfield",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Skyscanner/SkyFloatingLabelTextField",
+      "state" : {
+        "revision" : "a0750ebbc7311f3b3debf99c5e59338e854afa59",
+        "version" : "4.0.0"
       }
     },
     {

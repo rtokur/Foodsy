@@ -83,6 +83,9 @@ class MealDetailViewController: UIViewController {
                                 withConfiguration: configuration),
                         for: .normal)
         button.tintColor = .systemPink
+        button.addTarget(self,
+                         action: #selector(favoriteButtonTapped),
+                         for: .touchUpInside)
         return button
     }()
     
@@ -339,6 +342,11 @@ class MealDetailViewController: UIViewController {
                                                                                                              attributes: Constant.attributesInstruction))
             }
         }
+    }
+    
+    @objc func favoriteButtonTapped(_ sender: UIButton){
+        let meal = mealDetailViewModel.meal!
+        self.mealDetailViewModel.addMealToFavorites(meal)
     }
 }
 

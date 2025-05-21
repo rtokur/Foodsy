@@ -36,12 +36,17 @@ class MealViewController: UIViewController {
         return stackView
     }()
     
-    private let userNameLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = .black
-        label.textAlignment = .left
-        label.font = .boldSystemFont(ofSize: 20)
-        return label
+    private let userNameButton: UIButton = {
+        let button = UIButton()
+        var configuration = UIButton.Configuration.plain()
+        configuration.image = UIImage(systemName: "chevron.compact.down")
+        configuration.imagePadding = 10
+        configuration.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+        configuration.imagePlacement = .trailing
+        button.tintColor = .black
+        button.configuration = configuration
+        button.contentHorizontalAlignment = .left
+        return button
     }()
     
     private let whatDoYouWantLabel: UILabel = {
@@ -55,8 +60,9 @@ class MealViewController: UIViewController {
     
     private let userImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.backgroundColor = .blue
-        imageView.layer.cornerRadius = 30
+        imageView.image = UIImage(named: "user")!.withTintColor(UIColor(named: Constant.pink)!)
+        imageView.backgroundColor = .clear
+        imageView.layer.cornerRadius = 25
         return imageView
     }()
     
@@ -190,7 +196,6 @@ class MealViewController: UIViewController {
     //MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
         setupViews()
         
         setupConstraints()
@@ -199,11 +204,14 @@ class MealViewController: UIViewController {
             guard let self = self else { return }
             self.mealCollectionView.reloadData()
             self.categoryCollectionView.reloadData()
-            self.userNameLabel.text = mealViewModel.userName
+            self.userNameButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: mealViewModel.userName,
+                                                                                                    attributes: [.font: UIFont.boldSystemFont(ofSize: 20),
+                                                                                                                 .foregroundColor: UIColor.black]))
         }
         
         mealViewModel.loadMeals()
         mealViewModel.loadCategories()
+        configureMenu()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -214,11 +222,12 @@ class MealViewController: UIViewController {
     
     //MARK: - Setup Methods
     func setupViews(){
+        view.backgroundColor = .white
         view.addSubview(stackView2)
         
         stackView2.addArrangedSubview(stackView3)
         
-        stackView3.addArrangedSubview(userNameLabel)
+        stackView3.addArrangedSubview(userNameButton)
         
         stackView3.addArrangedSubview(whatDoYouWantLabel)
         
@@ -258,24 +267,24 @@ class MealViewController: UIViewController {
     
     func setupConstraints(){
         stackView2.snp.makeConstraints { make in
-            make.height.equalTo(60)
+            make.height.equalTo(50)
             make.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(20)
             make.top.equalTo(view.safeAreaLayoutGuide)
         }
         stackView3.snp.makeConstraints { make in
             make.height.equalToSuperview()
         }
-        userNameLabel.snp.makeConstraints { make in
+        userNameButton.snp.makeConstraints { make in
             make.height.equalTo(35)
         }
         whatDoYouWantLabel.snp.makeConstraints { make in
             make.width.equalToSuperview()
         }
         userImageView.snp.makeConstraints { make in
-            make.width.height.equalTo(60)
+            make.width.height.equalTo(50)
         }
         stackView1.snp.makeConstraints { make in
-            make.top.equalTo(view.safeAreaLayoutGuide).inset(80)
+            make.top.equalTo(view.safeAreaLayoutGuide).inset(70)
             make.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(20)
         }
         searchBar.snp.makeConstraints { make in
@@ -314,6 +323,22 @@ class MealViewController: UIViewController {
             make.top.equalTo(stackView5.snp.bottom)
             make.leading.trailing.equalToSuperview()
         }
+    }
+    
+    //MARK: - Functions
+    func configureMenu(){
+        let actionClosure = { [weak self] (action: UIAction) in
+            let userModel = self?.mealViewModel.user
+            let favoriteViewModel = FavoriteViewModel(user: userModel!)
+            let favoriteViewController = FavoriteViewController(favoriteViewModel: favoriteViewModel)
+            favoriteViewController.isModalInPresentation = true
+            favoriteViewController.modalPresentationStyle = .fullScreen
+            self?.present(favoriteViewController, animated: true)
+        }
+        var menuChildren : [UIMenuElement] = []
+        menuChildren.append(UIAction(title: "Favorites", handler: actionClosure))
+        userNameButton.menu = UIMenu(options: .displayInline, children: menuChildren)
+        userNameButton.showsMenuAsPrimaryAction = true
     }
     
     //MARK: - Actions
@@ -361,8 +386,10 @@ extension MealViewController: UICollectionViewDelegate,
                 let ingredientsCount = mealViewModel.numberOfIngredients(meal: meal)
                 cell.ingredientCountButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "\(ingredientsCount) ingredients",
                                                                                                                 attributes: Constant.attributesIngredientsCount))
-                cell.cuisineButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "\(cuisine)", attributes: Constant.attributesIngredientsCount))
+                cell.cuisineButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "\(cuisine)",
+                                                                                                        attributes: Constant.attributesIngredientsCount))
             }
+            cell.delegate = self
             return cell
         }
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CategoryCollectionViewCell",
@@ -406,4 +433,10 @@ extension MealViewController: UICollectionViewDelegate,
     }
 }
 
-
+extension MealViewController: MealCellDelegate {
+    func didTapFavorite(on cell: MealCollectionViewCell) {
+        guard let indexPath = mealCollectionView.indexPath(for: cell) else { return }
+        let meal = mealViewModel.meal(at: indexPath.item)
+        mealViewModel.addMealToFavorites(meal)
+    }
+}

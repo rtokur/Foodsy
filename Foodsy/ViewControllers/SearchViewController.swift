@@ -79,7 +79,6 @@ class SearchViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = .white
         setupViews()
         setupConstraints()
         
@@ -96,6 +95,7 @@ class SearchViewController: UIViewController {
 
     //MARK: - Setup Methods
     func setupViews(){
+        view.backgroundColor = .white
         view.addSubview(stackView1)
         stackView1.addArrangedSubview(backButton)
         stackView1.addArrangedSubview(searchBar)
@@ -145,7 +145,8 @@ extension SearchViewController: UICollectionViewDelegate,
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "SearchCollectionViewCell", for: indexPath) as! SearchCollectionViewCell
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "SearchCollectionViewCell",
+                                                      for: indexPath) as! SearchCollectionViewCell
         let meal = searchViewModel.searchMeal(at: indexPath.row)
         if let url = meal.mealUrl,
            let name = meal.strMeal {
@@ -153,6 +154,7 @@ extension SearchViewController: UICollectionViewDelegate,
             cell.mealNameLabel.text = name
             cell.ingredientsLabel.text = searchViewModel.ingredients(for: indexPath.row).joined(separator: ", ")
         }
+        cell.delegate = self
         return cell
     }
     
@@ -172,3 +174,12 @@ extension SearchViewController: UICollectionViewDelegate,
         }
     }
 }
+
+extension SearchViewController: SearchCellDelegate {
+    func didTapFavorite(on cell: SearchCollectionViewCell) {
+        guard let indexPath = searchCategoryCollectionView.indexPath(for: cell) else { return }
+        let meal = searchViewModel.searchMeal(at: indexPath.item)
+        searchViewModel.addMealToFavorites(meal)
+    }
+}
+
