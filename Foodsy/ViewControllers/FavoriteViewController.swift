@@ -77,7 +77,7 @@ class FavoriteViewController: UIViewController {
 
         setupViews()
         setupConstraints()
-        
+
         favoriteViewModel.onDataUpdated = { [weak self] in
             guard let self = self else { return }
             DispatchQueue.main.async {
@@ -87,8 +87,7 @@ class FavoriteViewController: UIViewController {
                 }
             }
         }
-        
-        favoriteViewModel.fetchFavorites()
+        favoriteViewModel.loadFavorites()
     }
 
     //MARK: - Setup Methods
@@ -138,34 +137,42 @@ extension FavoriteViewController: UICollectionViewDelegate,
                                   UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView,
                         numberOfItemsInSection section: Int) -> Int {
-        return favoriteViewModel.allFavorites.count
+        return favoriteViewModel.favoriteMeals.count
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "FavoriteCollectionViewCell",
                                                       for: indexPath) as! FavoriteCollectionViewCell
-        let meal = favoriteViewModel.getFavorites(at: indexPath.row)
-        if let url = meal.mealUrl,
-           let name = meal.strMeal{
-            cell.favoriteImageView.kf.setImage(with: url)
-            cell.favoriteLabel.text = name
-        }
-        cell.isFavorite = favoriteViewModel.isMealFavorite(meal)
-        cell.onFavoriteTapped = { [weak self] in
-            self?.favoriteViewModel.toggleFavorite(for: meal)
-        }
+        let meal = favoriteViewModel.meal(at: indexPath.row)
+        let isFavorite = favoriteViewModel.isFavorite(meal)
+        cell.configure(with: meal,
+                       isFavorite: isFavorite)
+        cell.delegate = self
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-//        let meal = categoryViewModel.meal(at: indexPath.row)
-//        let mealDetailViewController = MealDetailViewController()
-//        mealDetailViewController.mealDetailViewModel = MealDetailViewModel(mealId: meal.idMeal ?? "")
-//        mealDetailViewController.isModalInPresentation = true
-//        mealDetailViewController.modalPresentationStyle = .fullScreen
-//        self.present(mealDetailViewController, animated: true)
+        let meal = favoriteViewModel.meal(at: indexPath.row)
+        let userModel = self.favoriteViewModel.user
+        let mealDetailViewModel = MealDetailViewModel(mealId: meal.idMeal ?? "",
+                                user: userModel)
+        let mealDetailViewController = MealDetailViewController(mealDetailViewModel: mealDetailViewModel)
+        mealDetailViewController.isModalInPresentation = true
+        mealDetailViewController.modalPresentationStyle = .fullScreen
+        self.present(mealDetailViewController,
+                     animated: true)
         
     }
     
+}
+
+extension FavoriteViewController: FavoriteCellDelegate {
+    func didTapFavorite(on cell: FavoriteCollectionViewCell) {
+        guard let indexPath = favoriteCollectionView.indexPath(for: cell) else { return }
+        let meal = favoriteViewModel.meal(at: indexPath.item)
+        favoriteViewModel.removeMealFromFavorites(meal) { [weak self] in
+            self?.favoriteCollectionView.deleteItems(at: [indexPath])
+        }
+    }
 }

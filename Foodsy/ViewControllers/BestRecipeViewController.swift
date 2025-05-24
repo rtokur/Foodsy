@@ -9,7 +9,16 @@ import UIKit
 
 class BestRecipeViewController: UIViewController {
     //MARK: - Properties
-    var bestRecipeViewModel: MealViewModel!
+    var bestRecipeViewModel: MealViewModel
+    
+    init(bestRecipeViewModel: MealViewModel) {
+        self.bestRecipeViewModel = bestRecipeViewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     //MARK: - UI Elements
     private let stackView1: UIStackView = {
@@ -125,19 +134,19 @@ extension BestRecipeViewController: UICollectionViewDelegate,
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "MealCategoryBestRecipeCollectionViewCell", for: indexPath) as! MealCategoryBestRecipeCollectionViewCell
-        if let url = bestRecipeViewModel.meals[indexPath.row].mealUrl,
-           let name = bestRecipeViewModel.meals[indexPath.row].strMeal{
-            cell.mealImageView.kf.setImage(with: url)
-            cell.mealNameLabel.text = name
-        }
+        let meal = bestRecipeViewModel.meal(at: indexPath.row)
+        let isFavorite = bestRecipeViewModel.isFavorite(meal)
+        cell.configure(with: meal,
+                       isFavorite: isFavorite)
         cell.delegate = self
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let meal = bestRecipeViewModel.meal(at: indexPath.row)
-        let mealDetailViewController = MealDetailViewController()
-        mealDetailViewController.mealDetailViewModel = MealDetailViewModel(meal: meal)
+        let userModel = bestRecipeViewModel.user
+        let mealDetailViewModel = MealDetailViewModel(meal: meal, user: userModel)
+        let mealDetailViewController = MealDetailViewController(mealDetailViewModel: mealDetailViewModel)
         mealDetailViewController.modalPresentationStyle = .fullScreen
         mealDetailViewController.isModalInPresentation = true
         present(mealDetailViewController,
@@ -150,7 +159,7 @@ extension BestRecipeViewController: MealCategoryBestRecipeCellDelegate {
     func didTapFavorite(on cell: MealCategoryBestRecipeCollectionViewCell) {
         guard let indexPath = bestRecipeCategoryCollectionView.indexPath(for: cell) else { return }
         let meal = bestRecipeViewModel.meal(at: indexPath.item)
-        bestRecipeViewModel.toggleFavoriteState(for: meal) { [weak self] in
+        bestRecipeViewModel.toggleFavorite(for: meal) { [weak self] in
             guard let self = self else { return }
             let updatedIsFavorite = self.bestRecipeViewModel.isFavorite(meal)
             cell.setFavoriteState(isFavorite: updatedIsFavorite)

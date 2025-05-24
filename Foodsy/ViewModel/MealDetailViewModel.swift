@@ -11,43 +11,54 @@ import FirebaseAuth
 
 class MealDetailViewModel {
     //MARK: - Properties
+    private let mealService = MealService()
+    private let favoriteService: FavoriteServiceProtocol
+    private let user: UserModel
+    
     var meal: Meal?
-    private var mealService = MealService()
+    var favoriteMeals: [Meal] = []
     var onDataUpdated: (() -> Void)?
     
-    init(meal: Meal) {
+    // MARK: - Init
+    init(meal: Meal,
+         user: UserModel,
+         favoriteService: FavoriteServiceProtocol = FavoriteService()) {
         self.meal = meal
+        self.user = user
+        self.favoriteService = favoriteService
     }
     
-    init(mealId: String){
+    init(mealId: String,
+         user: UserModel,
+         favoriteService: FavoriteServiceProtocol = FavoriteService()){
+        self.user = user
+        self.favoriteService = favoriteService
         fetchMealById(by: mealId)
     }
     
+    // MARK: - Computed Properties
     var mealName: String {
-        return meal?.strMeal ?? "No name"
+        meal?.strMeal ?? "No name"
     }
     
     var imageURL: URL? {
-        return meal?.mealUrl
-    }
-    
-    var instructions: [String] {
-        let splittedInstructions = meal?.strInstructions?.components(separatedBy: ".") ?? []
-        
-        let arrangedInstructions = splittedInstructions
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }  
-            .filter { !$0.isEmpty }
-            .map { "- \($0)." }
-
-        return arrangedInstructions
+        meal?.mealUrl
     }
     
     var category: String {
-        return meal?.strCategory ?? "Unknown"
+        meal?.strCategory ?? "Unknown"
     }
     
     var area: String {
-        return meal?.strArea ?? "Unknown"
+        meal?.strArea ?? "Unknown"
+    }
+    
+    var instructions: [String] {
+        meal?.strInstructions?
+            .components(separatedBy: ".")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .map { "- \($0)." } ?? []
     }
     
     var ingredients: [String] {
@@ -86,7 +97,8 @@ class MealDetailViewModel {
         return result
     }
     
-    func fetchMealById(by id: String){
+    // MARK: - Networking
+    func fetchMealById(by id: String) {
         mealService.fetchMealDetailById(by: id) { [weak self] result in
             switch result {
             case .success(let meals):
@@ -95,31 +107,59 @@ class MealDetailViewModel {
                     self?.onDataUpdated?()
                 }
             case .failure(let error):
-                print(error)
-            case .none:
-                return
+                print("Error fetching meal: \(error.localizedDescription)")
             }
         }
     }
     
-    func addMealToFavorites(_ meal: Meal) {
-        let db = Firestore.firestore()
-        guard let currentUserId = Auth.auth().currentUser?.uid else { return }
-        if let id = meal.idMeal,
-           let imageUrl = meal.strMealThumb,
-           let name = meal.strMeal{
-            let mealData: [String: Any] = ["id": id,
-                                           "imageUrl": imageUrl,
-                                           "name": name]
-            db.collection("users").document(currentUserId).collection("favorites").document(id).setData(mealData) { error in
-                if let error = error {
-                    print("favorite saving failed.",
-                          error.localizedDescription)
-                }else {
-                    print("favorite saved succesfully.")
-                }
+    func loadFavorites(completion: @escaping () -> Void) {
+        favoriteService.fetchFavorites(for: user.uid) { [weak self] meals in
+            self?.favoriteMeals = meals
+            DispatchQueue.main.async {
+                completion()
             }
         }
-        
+    }
+    
+    // MARK: - Favorite Logic
+    func isFavorite(_ meal: Meal) -> Bool {
+        favoriteMeals.contains(where: { $0.idMeal == meal.idMeal })
+    }
+    
+    func toggleFavoriteState(for meal: Meal, completion: @escaping () -> Void) {
+        if isFavorite(meal) {
+            removeMealFromFavorites(meal,
+                                    completion: completion)
+        } else {
+            addMealToFavorites(meal,
+                               completion: completion)
+        }
+    }
+    
+    func addMealToFavorites(_ meal: Meal, completion: @escaping () -> Void) {
+        favoriteService.addFavorite(meal,
+                                    userId: user.uid) { [weak self] success in
+            guard let self = self else { return }
+            if success {
+                self.favoriteMeals.append(meal)
+            }
+            DispatchQueue.main.async {
+                self.onDataUpdated?()
+                completion()
+            }
+        }
+    }
+    
+    func removeMealFromFavorites(_ meal: Meal, completion: @escaping () -> Void) {
+        favoriteService.removeFavorite(meal, userId: user.uid) { [weak self] success in
+            guard let self = self else { return }
+            if success {
+                self.favoriteMeals.removeAll(where: { $0.idMeal == meal.idMeal })
+            }
+            DispatchQueue.main.async {
+                self.onDataUpdated?()
+                completion()
+            }
+        }
     }
 }

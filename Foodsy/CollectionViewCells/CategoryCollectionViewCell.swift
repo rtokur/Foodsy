@@ -8,6 +8,7 @@
 import UIKit
 
 class CategoryCollectionViewCell: UICollectionViewCell {
+    
     //MARK: - UI Elements
     let categoryImageView: UIImageView = {
         let imageView = UIImageView()
@@ -31,11 +32,18 @@ class CategoryCollectionViewCell: UICollectionViewCell {
         return label
     }()
     
+    //MARK: - Lifecycle
     override init(frame: CGRect) {
         super.init(frame: frame)
         
         setupViews()
         setupConstraints()
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        categoryLabel.text = nil
+        categoryImageView.image = nil
     }
     
     required init?(coder: NSCoder) {
@@ -58,6 +66,16 @@ class CategoryCollectionViewCell: UICollectionViewCell {
         }
         categoryLabel.snp.makeConstraints { make in
             make.height.width.equalToSuperview()
+        }
+    }
+    
+    //MARK: - Functions
+    func configure(with category: Category) {
+        categoryLabel.text = category.strCategory ?? "Unknown"
+        if let url = category.categoryUrl {
+            categoryImageView.kf.setImage(with: url)
+        } else {
+            categoryImageView.image = nil
         }
     }
 }

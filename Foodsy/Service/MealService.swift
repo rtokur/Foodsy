@@ -8,118 +8,78 @@
 import Foundation
 
 class MealService {
+    private let baseURL = "https://www.themealdb.com/api/json/v1/1/"
     
-    //MARK: - Functions
-    func fetchFoods(completion: @escaping([Meal]?) -> Void){
-        let foodUrlString = "https://www.themealdb.com/api/json/v1/1/search.php?s="
-        guard let foodUrl = URL(string: foodUrlString) else {
-            completion(nil)
+    // MARK: - Fetch All Meals
+    func fetchFoods(completion: @escaping (Result<[Meal], Error>) -> Void) {
+        request(endpoint: "search.php?s=", type: MealResponse.self) { result in
+            completion(result.map { $0.meals ?? [] })
+        }
+    }
+    
+    // MARK: - Fetch Categories
+    func fetchCategories(completion: @escaping (Result<[Category], Error>) -> Void) {
+        request(endpoint: "categories.php", type: CategoryResponse.self) { result in
+            completion(result.map { $0.categories ?? [] })
+        }
+    }
+    
+    // MARK: - Fetch Meals by Category
+    func fetchMealsForCategory(for category: String, completion: @escaping (Result<[Meal], Error>) -> Void) {
+        let path = "filter.php?c=\(category)"
+        request(endpoint: path, type: MealResponse.self) { result in
+            completion(result.map { $0.meals ?? [] })
+        }
+    }
+    
+    // MARK: - Fetch Meal Details by ID
+    func fetchMealDetailById(by id: String, completion: @escaping (Result<[Meal], Error>) -> Void) {
+        let path = "lookup.php?i=\(id)"
+        request(endpoint: path, type: MealResponse.self) { result in
+            completion(result.map { $0.meals ?? [] })
+        }
+    }
+    
+    // MARK: - Search Meal
+    func searchMeal(with text: String, completion: @escaping (Result<[Meal], Error>) -> Void) {
+        let path = "search.php?s=\(text)"
+        request(endpoint: path, type: MealResponse.self) { result in
+            completion(result.map { $0.meals ?? [] })
+        }
+    }
+    
+    // MARK: - Generic Request Method
+    private func request<T: Decodable>(endpoint: String, type: T.Type, completion: @escaping (Result<T, Error>) -> Void) {
+        guard let url = URL(string: baseURL + endpoint) else {
+            completion(.failure(MealServiceError.invalidURL))
             return
         }
         
-        URLSession.shared.dataTask(with: foodUrl) { data, _ , error in
-            if let data = data{
-                do{
-                    let result = try JSONDecoder().decode(MealResponse.self,from: data)
-                    completion(result.meals)
-                }catch{
-                    print(error)
-                    completion(nil)
-                }
-            }else{
-                completion(nil)
-            }
-        }.resume()
-    }
-    
-    func fetchCategories(completion: @escaping([Category]?) -> Void){
-        let categoryUrlString = "https://www.themealdb.com/api/json/v1/1/categories.php"
-        guard let categoryUrl = URL(string: categoryUrlString) else {
-            completion(nil)
-            return
-        }
-        
-        URLSession.shared.dataTask(with: categoryUrl) { data, _ , error in
-            if let data = data{
-                do{
-                    let result = try JSONDecoder().decode(CategoryResponse.self,from: data)
-                    completion(result.categories ?? [])
-                }catch{
-                    print(error)
-                    completion(nil)
-                }
-            }else{
-                completion(nil)
-            }
-        }.resume()
-    }
-    
-    func fetchMealsForCategory(for category: String, completion: @escaping (Result<[Meal], Error>?) -> Void){
-        let categoryUrlString = "https://www.themealdb.com/api/json/v1/1/filter.php?c=\(category)"
-        guard let url = URL(string: categoryUrlString) else {
-            completion(nil)
-            return
-        }
-        URLSession.shared.dataTask(with: url) { data, _ , error in
-            if let error = error{
-                completion(.failure(error))
-                return
-            }
-            
-            guard let data = data else { return }
-            
-            do {
-                let response = try JSONDecoder().decode(MealResponse.self, from: data)
-                completion(.success(response.meals ?? []))
-            }catch{
-                completion(.failure(error))
-            }
-        }.resume()
-    }
-    
-    func fetchMealDetailById(by id: String, completion: @escaping (Result<[Meal], Error>?) -> Void){
-        let mealUrlString = "https://www.themealdb.com/api/json/v1/1/lookup.php?i=\(id)"
-        guard let url = URL(string: mealUrlString) else {
-            completion(nil)
-            return
-        }
-        URLSession.shared.dataTask(with: url) { data, _ , error in
+        URLSession.shared.dataTask(with: url) { data, _, error in
             if let error = error {
+                print("Network error: \(error)")
                 completion(.failure(error))
                 return
             }
             
-            guard let data = data else { return }
+            guard let data = data else {
+                completion(.failure(MealServiceError.noData))
+                return
+            }
             
             do {
-                let response = try JSONDecoder().decode(MealResponse.self, from: data)
-                completion(.success(response.meals ?? []))
-            }catch{
+                let decoded = try JSONDecoder().decode(T.self, from: data)
+                completion(.success(decoded))
+            } catch {
+                print("Decoding error: \(error)")
                 completion(.failure(error))
             }
         }.resume()
     }
-    
-    func searchMeal(with text: String, completion: @escaping (Result<[Meal], Error>?) -> Void){
-        let searchMealUrlString = "https://www.themealdb.com/api/json/v1/1/search.php?s=\(text)"
-        guard let url = URL(string: searchMealUrlString) else {
-            completion(nil)
-            return
-        }
-        URLSession.shared.dataTask(with: url) { data, _ , error in
-            if let error = error{
-                completion(.failure(error))
-                return
-            }
-            
-            guard let data = data else { return }
-            
-            do{
-                let response = try JSONDecoder().decode(MealResponse.self, from: data)
-                completion(.success(response.meals ?? []))
-            }catch{
-                completion(.failure(error))
-            }
-        }.resume()
-    }
+}
+
+// MARK: - Custom Errors
+enum MealServiceError: Error {
+    case invalidURL
+    case noData
 }

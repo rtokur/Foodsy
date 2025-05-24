@@ -7,12 +7,14 @@
 
 import UIKit
 
+//MARK: - Protocol
 protocol SearchCellDelegate: AnyObject {
     func didTapFavorite(on cell: SearchCollectionViewCell)
 }
 
 class SearchCollectionViewCell: UICollectionViewCell {
     
+    //MARK: - UI Elements
     let stackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -56,7 +58,9 @@ class SearchCollectionViewCell: UICollectionViewCell {
         button.tintColor = .white
         button.backgroundColor = .white.withAlphaComponent(0.2)
         let configuration = UIImage.SymbolConfiguration(pointSize: 20)
-        button.setImage(UIImage(systemName: "heart", withConfiguration: configuration), for: .normal)
+        button.setImage(UIImage(systemName: "heart",
+                                withConfiguration: configuration),
+                        for: .normal)
         button.layer.cornerRadius = 20
         button.addTarget(self,
                          action: #selector(favoriteButtonTapped),
@@ -64,9 +68,10 @@ class SearchCollectionViewCell: UICollectionViewCell {
         return button
     }()
     
-    // MARK: - Delegate
+    // MARK: - Properties
     weak var delegate: SearchCellDelegate?
     
+    //MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
@@ -112,6 +117,24 @@ class SearchCollectionViewCell: UICollectionViewCell {
         }
     }
     
+    //MARK: - Functions
+    func setFavoriteState(isFavorite: Bool){
+        let configuration = UIImage.SymbolConfiguration(pointSize: 23)
+        let imageName = isFavorite ? "heart.fill" : "heart"
+        favoriteButton.setImage(UIImage(systemName: imageName,
+                                        withConfiguration: configuration),
+                                for: .normal)
+    }
+    
+    func configure(with meal: Meal, isFavorite: Bool, ingredients: String) {
+        if let url = meal.mealUrl,
+           let name = meal.strMeal {
+            mealImageView.kf.setImage(with: url)
+            mealNameLabel.text = name
+            ingredientsLabel.text = ingredients
+        }
+        setFavoriteState(isFavorite: isFavorite)
+    }
     // MARK: - Action
     @objc private func favoriteButtonTapped() {
         delegate?.didTapFavorite(on: self)

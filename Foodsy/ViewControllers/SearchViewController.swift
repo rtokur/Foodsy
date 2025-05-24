@@ -8,7 +8,17 @@
 import UIKit
 
 class SearchViewController: UIViewController {
-    var searchViewModel = SearchViewModel()
+    //MARK: - Properties
+    var searchViewModel: SearchViewModel
+    
+    init(searchViewModel: SearchViewModel) {
+        self.searchViewModel = searchViewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     //MARK: - UI Elements
     private let stackView1: UIStackView = {
@@ -80,7 +90,13 @@ class SearchViewController: UIViewController {
         super.viewDidLoad()
 
         setupViews()
+        
         setupConstraints()
+        
+        searchViewModel.loadFavorites { [weak self] in
+            guard let text = self?.searchBar.text else { return }
+            self?.searchViewModel.search(with: text)
+        }
         
         searchViewModel.onDataUpdated = { [weak self] in
             guard let self = self else { return }
@@ -90,7 +106,7 @@ class SearchViewController: UIViewController {
             }
             self.noResultLabel.isHidden = !self.searchViewModel.isResultEmpty()
         }
-        searchViewModel.search(with: searchBar.text!)
+        
     }
 
     //MARK: - Setup Methods
@@ -103,7 +119,8 @@ class SearchViewController: UIViewController {
         view.addSubview(searchCategoryCollectionView)
         searchCategoryCollectionView.delegate = self
         searchCategoryCollectionView.dataSource = self
-        searchCategoryCollectionView.register(SearchCollectionViewCell.self, forCellWithReuseIdentifier: "SearchCollectionViewCell")
+        searchCategoryCollectionView.register(SearchCollectionViewCell.self,
+                                              forCellWithReuseIdentifier: "SearchCollectionViewCell")
         view.addSubview(noResultLabel)
     }
     
@@ -148,20 +165,21 @@ extension SearchViewController: UICollectionViewDelegate,
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "SearchCollectionViewCell",
                                                       for: indexPath) as! SearchCollectionViewCell
         let meal = searchViewModel.searchMeal(at: indexPath.row)
-        if let url = meal.mealUrl,
-           let name = meal.strMeal {
-            cell.mealImageView.kf.setImage(with: url)
-            cell.mealNameLabel.text = name
-            cell.ingredientsLabel.text = searchViewModel.ingredients(for: indexPath.row).joined(separator: ", ")
-        }
+        let ingredients = searchViewModel.ingredients(for: indexPath.row).joined(separator: ", ")
+        let isFavorite = searchViewModel.isFavorite(meal)
+        cell.configure(with: meal,
+                       isFavorite: isFavorite,
+                       ingredients: ingredients)
         cell.delegate = self
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let meal = searchViewModel.searchMeal(at: indexPath.row)
-        let mealDetailViewController = MealDetailViewController()
-        mealDetailViewController.mealDetailViewModel = MealDetailViewModel(meal: meal)
+        let userModel = self.searchViewModel.user
+        let mealDetailViewModel = MealDetailViewModel(meal: meal,
+                                user: userModel)
+        let mealDetailViewController = MealDetailViewController(mealDetailViewModel: mealDetailViewModel)
         mealDetailViewController.modalPresentationStyle = .fullScreen
         mealDetailViewController.isModalInPresentation = true
         present(mealDetailViewController,
@@ -169,9 +187,7 @@ extension SearchViewController: UICollectionViewDelegate,
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        if searchText != "" {
-            searchViewModel.search(with: searchText)
-        }
+        searchViewModel.search(with: searchText)
     }
 }
 
@@ -179,7 +195,12 @@ extension SearchViewController: SearchCellDelegate {
     func didTapFavorite(on cell: SearchCollectionViewCell) {
         guard let indexPath = searchCategoryCollectionView.indexPath(for: cell) else { return }
         let meal = searchViewModel.searchMeal(at: indexPath.item)
-        searchViewModel.addMealToFavorites(meal)
+        searchViewModel.toggleFavoriteState(for: meal) { [weak self] in
+            guard let self = self else { return }
+            let updatedIsFavorite = self.searchViewModel.isFavorite(meal)
+            cell.setFavoriteState(isFavorite: updatedIsFavorite)
+        }
     }
 }
+
 

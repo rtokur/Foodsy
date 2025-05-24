@@ -9,7 +9,16 @@ import UIKit
 
 class MealDetailViewController: UIViewController {
     //MARK: - Properties
-    var mealDetailViewModel: MealDetailViewModel!
+    var mealDetailViewModel: MealDetailViewModel
+    
+    init(mealDetailViewModel: MealDetailViewModel) {
+        self.mealDetailViewModel = mealDetailViewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     //MARK: - UI Elements
     private let mealImageView: UIImageView = {
@@ -192,6 +201,12 @@ class MealDetailViewController: UIViewController {
                 self?.updateUI()
             }
         }
+        mealDetailViewModel.loadFavorites { [weak self] in
+            guard let self = self, let meal = mealDetailViewModel.meal else { return }
+            let isFavorite = self.mealDetailViewModel.isFavorite(meal)
+            self.setFavoriteState(isFavorite: isFavorite)
+        }
+        
         updateUI()
     }
     
@@ -311,6 +326,14 @@ class MealDetailViewController: UIViewController {
                                                                             attributes: Constant.attributesCuisine))
     }
     
+    func setFavoriteState(isFavorite: Bool) {
+        let configuration = UIImage.SymbolConfiguration(pointSize: 30)
+        let imageName = isFavorite ? "heart.fill" : "heart"
+        favoriteButton.setImage(UIImage(systemName: imageName,
+                                        withConfiguration: configuration),
+                                for: .normal)
+    }
+    
     //MARK: - Actions
     @objc func backButtonAction(_ sender: UIButton){
         dismiss(animated: true)
@@ -346,7 +369,11 @@ class MealDetailViewController: UIViewController {
     
     @objc func favoriteButtonTapped(_ sender: UIButton){
         let meal = mealDetailViewModel.meal!
-        self.mealDetailViewModel.addMealToFavorites(meal)
+        mealDetailViewModel.toggleFavoriteState(for: meal) { [weak self] in
+            guard let self = self else { return }
+            let updatedIsFavorite = self.mealDetailViewModel.isFavorite(meal)
+            setFavoriteState(isFavorite: updatedIsFavorite)
+        }
     }
 }
 

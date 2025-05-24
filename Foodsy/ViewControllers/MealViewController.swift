@@ -41,7 +41,10 @@ class MealViewController: UIViewController {
         var configuration = UIButton.Configuration.plain()
         configuration.image = UIImage(systemName: "chevron.compact.down")
         configuration.imagePadding = 10
-        configuration.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+        configuration.contentInsets = NSDirectionalEdgeInsets(top: 0,
+                                                              leading: 0,
+                                                              bottom: 0,
+                                                              trailing: 0)
         configuration.imagePlacement = .trailing
         button.tintColor = .black
         button.configuration = configuration
@@ -334,11 +337,14 @@ class MealViewController: UIViewController {
             let favoriteViewController = FavoriteViewController(favoriteViewModel: favoriteViewModel)
             favoriteViewController.isModalInPresentation = true
             favoriteViewController.modalPresentationStyle = .fullScreen
-            self?.present(favoriteViewController, animated: true)
+            self?.present(favoriteViewController,
+                          animated: true)
         }
         var menuChildren : [UIMenuElement] = []
-        menuChildren.append(UIAction(title: "Favorites", handler: actionClosure))
-        userNameButton.menu = UIMenu(options: .displayInline, children: menuChildren)
+        menuChildren.append(UIAction(title: "Favorites",
+                                     handler: actionClosure))
+        userNameButton.menu = UIMenu(options: .displayInline,
+                                     children: menuChildren)
         userNameButton.showsMenuAsPrimaryAction = true
     }
     
@@ -350,15 +356,18 @@ class MealViewController: UIViewController {
         categoryViewController.categoryViewModel.selectedCategory = "Beef"
         categoryViewController.modalPresentationStyle = .fullScreen
         categoryViewController.isModalInPresentation = true
-        present(categoryViewController, animated: true)
+        present(categoryViewController,
+                animated: true)
     }
     
     @objc func goToBestRecipe(_ sender: UIButton){
-        let bestRecipeViewController = BestRecipeViewController()
-        bestRecipeViewController.bestRecipeViewModel = mealViewModel
+        let userModel = self.mealViewModel.user
+        let bestRecipeViewModel = MealViewModel(user: userModel)
+        let bestRecipeViewController = BestRecipeViewController(bestRecipeViewModel: bestRecipeViewModel)
         bestRecipeViewController.modalPresentationStyle = .fullScreen
         bestRecipeViewController.isModalInPresentation = true
-        present(bestRecipeViewController, animated: true)
+        present(bestRecipeViewController,
+                animated: true)
     }
 }
 
@@ -380,29 +389,19 @@ extension MealViewController: UICollectionViewDelegate,
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "MealCollectionViewCell",
                                                           for: indexPath) as! MealCollectionViewCell
             let meal = mealViewModel.meal(at: indexPath.row)
-            if let mealUrl = meal.mealUrl,
-               let cuisine = meal.strArea,
-               let category = meal.strCategory{
-                cell.mealImageView.kf.setImage(with: mealUrl)
-                cell.mealNameLabel.text = meal.strMeal
-                cell.categoryLabel.text = "\(category)"
-                let ingredientsCount = mealViewModel.numberOfIngredients(meal: meal)
-                cell.ingredientCountButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "\(ingredientsCount) ingredients",
-                                                                                                                attributes: Constant.attributesIngredientsCount))
-                cell.cuisineButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: "\(cuisine)",
-                                                                                                        attributes: Constant.attributesIngredientsCount))
-            }
-            cell.setFavoriteState(isFavorite: mealViewModel.isFavorite(meal))
+            let ingredientsCount = mealViewModel.numberOfIngredients(for: meal)
+            let isFavorite = mealViewModel.isFavorite(meal)
+            cell.configure(with: meal,
+                           isFavorite: isFavorite,
+                           ingredientsCount: ingredientsCount)
             cell.delegate = self
             return cell
         }
+        
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CategoryCollectionViewCell",
                                                       for: indexPath) as! CategoryCollectionViewCell
         let category = mealViewModel.category(at: indexPath.row)
-        cell.categoryLabel.text = category.strCategory
-        if let url = mealViewModel.categories[indexPath.row].categoryUrl{
-            cell.categoryImageView.kf.setImage(with: url)
-        }
+        cell.configure(with: category)
         return cell
     }
     
@@ -410,8 +409,10 @@ extension MealViewController: UICollectionViewDelegate,
                         didSelectItemAt indexPath: IndexPath) {
         if collectionView == mealCollectionView {
             let meal = mealViewModel.meal(at: indexPath.row)
-            let mealDetailViewController = MealDetailViewController()
-            mealDetailViewController.mealDetailViewModel = MealDetailViewModel(meal: meal)
+            let userModel = self.mealViewModel.user
+            let mealDetailViewModel = MealDetailViewModel(meal: meal,
+                                                          user: userModel)
+            let mealDetailViewController = MealDetailViewController(mealDetailViewModel: mealDetailViewModel)
             mealDetailViewController.modalPresentationStyle = .fullScreen
             mealDetailViewController.isModalInPresentation = true
             present(mealDetailViewController,
@@ -424,18 +425,21 @@ extension MealViewController: UICollectionViewDelegate,
             categoryViewController.categoryViewModel.selectedCategory = category
             categoryViewController.modalPresentationStyle = .fullScreen
             categoryViewController.isModalInPresentation = true
-            present(categoryViewController, animated: true)
+            present(categoryViewController,
+                    animated: true)
         }
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        if searchText != "" {
-            let searchViewController = SearchViewController()
-            searchViewController.searchBar.text = searchText
-            searchViewController.isModalInPresentation = true
-            searchViewController.modalPresentationStyle = .fullScreen
-            present(searchViewController, animated: true)
-        }
+        guard !searchText.isEmpty else { return }
+        let userModel = self.mealViewModel.user
+        let searchViewModel = SearchViewModel(user: userModel)
+        let searchViewController = SearchViewController(searchViewModel: searchViewModel)
+        searchViewController.searchBar.text = searchText
+        searchViewController.isModalInPresentation = true
+        searchViewController.modalPresentationStyle = .fullScreen
+        present(searchViewController,
+                animated: true)
     }
 }
 
@@ -443,7 +447,7 @@ extension MealViewController: MealCellDelegate {
     func didTapFavorite(on cell: MealCollectionViewCell) {
         guard let indexPath = mealCollectionView.indexPath(for: cell) else { return }
         let meal = mealViewModel.meal(at: indexPath.item)
-        mealViewModel.toggleFavoriteState(for: meal) { [weak self] in
+        mealViewModel.toggleFavorite(for: meal) { [weak self] in
             guard let self = self else { return }
             let updatedIsFavorite = self.mealViewModel.isFavorite(meal)
             cell.setFavoriteState(isFavorite: updatedIsFavorite)

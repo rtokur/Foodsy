@@ -6,14 +6,20 @@
 //
 
 import UIKit
+
+//MARK: - Protocol
 protocol MealCellDelegate: AnyObject {
     func didTapFavorite(on cell: MealCollectionViewCell)
 }
+
 class MealCollectionViewCell: UICollectionViewCell {
+    
     //MARK: - UI Elements
     let mealImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.backgroundColor = .blue
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
         return imageView
     }()
     
@@ -100,6 +106,7 @@ class MealCollectionViewCell: UICollectionViewCell {
     // MARK: - Delegate
     weak var delegate: MealCellDelegate?
     
+    //MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
@@ -112,13 +119,24 @@ class MealCollectionViewCell: UICollectionViewCell {
         gradientLayer.frame = gradientView.bounds
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        mealImageView.image = nil
+        mealNameLabel.text = nil
+        categoryLabel.text = nil
+        cuisineButton.setTitle(nil,
+                               for: .normal)
+        ingredientCountButton.setTitle(nil,
+                                       for: .normal)
+        setFavoriteState(isFavorite: false)
+    }
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
     //MARK: - Setup Methods
-    func setupViews(){
-        
+    func setupViews() {
         contentView.layer.cornerRadius = 20
         contentView.clipsToBounds = true
         
@@ -181,6 +199,7 @@ class MealCollectionViewCell: UICollectionViewCell {
     }
     
     func setupGradient(){
+        guard gradientLayer.superlayer == nil else { return }
         gradientLayer.colors = [UIColor.black.withAlphaComponent(0.9).cgColor,
                                 UIColor.clear.cgColor]
         gradientLayer.startPoint = CGPoint(x: 0.5,
@@ -190,6 +209,7 @@ class MealCollectionViewCell: UICollectionViewCell {
         gradientView.layer.addSublayer(gradientLayer)
     }
     
+    //MARK: - Functions
     func setFavoriteState(isFavorite: Bool){
         let configuration = UIImage.SymbolConfiguration(pointSize: 23)
         let imageName = isFavorite ? "heart.fill" : "heart"
@@ -197,6 +217,23 @@ class MealCollectionViewCell: UICollectionViewCell {
                                         withConfiguration: configuration),
                                 for: .normal)
     }
+    
+    func configure(with meal: Meal,
+                   isFavorite: Bool,
+                   ingredientsCount: Int) {
+        mealImageView.kf.setImage(with: meal.mealUrl)
+        mealNameLabel.text = meal.strMeal
+        categoryLabel.text = meal.strCategory
+        
+        let area = meal.strArea ?? "Unknown"
+        let ingredientText = "\(ingredientsCount) ingredients"
+        cuisineButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: area,
+                                                                                           attributes: Constant.attributesIngredientsCount))
+        ingredientCountButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: ingredientText,
+                                                                                                   attributes: Constant.attributesIngredientsCount))
+        setFavoriteState(isFavorite: isFavorite)
+    }
+    
     // MARK: - Action
     @objc private func favoriteButtonTapped() {
         delegate?.didTapFavorite(on: self)

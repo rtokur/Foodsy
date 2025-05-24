@@ -1,79 +1,58 @@
+import Foundation
 import FirebaseFirestore
 
 class FavoriteViewModel {
-    private(set) var allFavorites: [Meal] = []
-    private let favoriteService = FavoriteService()
-    var onDataUpdated: (() -> Void)?
-    
+    // MARK: - Properties
+    private let favoriteService: FavoriteServiceProtocol
     let user: UserModel
     
-    init(user: UserModel) {
+    var favoriteMeals: [Meal] = []
+    var onDataUpdated: (() -> Void)?
+    
+    // MARK: - Init
+    init(user: UserModel,
+         favoriteService: FavoriteServiceProtocol = FavoriteService()) {
         self.user = user
+        self.favoriteService = favoriteService
     }
     
     var userName: String {
         return user.name
     }
     
-    func fetchFavorites() {
-        let db = Firestore.firestore()
-        db.collection("users").document(user.uid).collection("favorites").getDocuments { snapshot, error in
-            guard let documents = snapshot?.documents, error == nil else {
-                print("not taken favorites", error?.localizedDescription ?? "unknown error")
-                return
-            }
-            
-            self.allFavorites = documents.compactMap { doc in
-                let data = doc.data()
-                if let id = data["id"] as? String,
-                   let imageUrl = data["imageUrl"] as? String,
-                   let name = data["name"] as? String {
-                    
-                    return Meal(idMeal: id,
-                                strMeal: name,
-                                strMealThumb: imageUrl)
-                }
-                return nil
-            }
-            
+    // MARK: - Data Fetching
+    func loadFavorites() {
+        favoriteService.fetchFavorites(for: user.uid) { [weak self] favorites in
+            self?.favoriteMeals = favorites
             DispatchQueue.main.async {
-                self.onDataUpdated?()
+                self?.onDataUpdated?()
             }
         }
     }
     
-    func getFavorites(at index: Int) -> Meal {
-        return allFavorites[index]
+    // MARK: - Accessors
+    func meal(at index: Int) -> Meal {
+        return favoriteMeals[index]
     }
     
     func numberOfFavorites() -> Int {
-        return allFavorites.count
+        return favoriteMeals.count
     }
     
-    func isMealFavorite(_ meal: Meal) -> Bool {
-        return allFavorites.contains(where: { $0.idMeal == meal.idMeal })
+    func isFavorite(_ meal: Meal) -> Bool {
+        return favoriteMeals.contains(where: { $0.idMeal == meal.idMeal })
     }
     
-    func toggleFavorite(for meal: Meal) {
-        if isMealFavorite(meal){
-            favoriteService.removeFavorite(meal, userId: user.uid) { [weak self] success in
-                guard let self = self else { return }
-                if success {
-                    self.allFavorites.removeAll(where: { $0.idMeal == meal.idMeal })
-                    DispatchQueue.main.async {
-                        self.onDataUpdated?()
-                    }
-                }
+    // MARK: - Favorite Operations
+    func removeMealFromFavorites(_ meal: Meal, completion: @escaping () -> Void) {
+        favoriteService.removeFavorite(meal, userId: user.uid) { [weak self] success in
+            guard let self = self else { return }
+            if success {
+                self.favoriteMeals.removeAll(where: { $0.idMeal == meal.idMeal })
             }
-        }else {
-            favoriteService.addFavorite(meal, userId: user.uid) { [weak self] success in
-                guard let self = self else { return }
-                if success {
-                    self.allFavorites.append(meal)
-                    DispatchQueue.main.async {
-                        self.onDataUpdated?()
-                    }
-                }
+            DispatchQueue.main.async {
+                self.onDataUpdated?()
+                completion()
             }
         }
     }

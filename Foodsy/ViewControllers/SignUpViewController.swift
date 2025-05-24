@@ -7,10 +7,11 @@
 
 import UIKit
 import SkyFloatingLabelTextField
-import FirebaseAuth
-import FirebaseFirestore
 
 class SignUpViewController: UIViewController {
+    //MARK: - Properties
+    private let signUpViewModel = SignUpViewModel()
+    
     //MARK: - UI Elements
     private let colorView: UIView = {
         let view = UIView()
@@ -294,12 +295,14 @@ class SignUpViewController: UIViewController {
             passwordTextField.isSecureTextEntry.toggle()
             
             let imageName = passwordTextField.isSecureTextEntry ? "eye.slash" : "eye"
-            toggleEyeButton.setImage(UIImage(systemName: imageName), for: .normal)
+            toggleEyeButton.setImage(UIImage(systemName: imageName),
+                                     for: .normal)
         }else if sender.superview == confirmPasswordTextField {
             confirmPasswordTextField.isSecureTextEntry.toggle()
             
             let imageName = confirmPasswordTextField.isSecureTextEntry ? "eye.slash" : "eye"
-            toggleConfirmPasswordButton.setImage(UIImage(systemName: imageName), for: .normal)
+            toggleConfirmPasswordButton.setImage(UIImage(systemName: imageName),
+                                                 for: .normal)
         }
     }
     
@@ -308,40 +311,24 @@ class SignUpViewController: UIViewController {
               let password = passwordTextField.text,
               password == confirmPasswordTextField.text,
               let name = nameTextField.text else {
+            showAlert(message: "Please fill in all fields correctly.")
             return
         }
-        Auth.auth().createUser(withEmail: email, password: password) { [weak self] result, error in
-            if let error = error {
-                let alert = UIAlertController(title: "Error",
-                                              message: error.localizedDescription,
-                                              preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "OK",
-                                              style: .cancel))
-                self?.present(alert, animated: true)
-                return
-            }
-            if let user = Auth.auth().currentUser {
-                let uid = user.uid
-                
-                let db = Firestore.firestore()
-                db.collection("users").document(uid).setData(["email": email, "username": name]) { error in
-                    if let error = error {
-                        let alert = UIAlertController(title: "Error",
-                                                      message: error.localizedDescription,
-                                                      preferredStyle: .alert)
-                        alert.addAction(UIAlertAction(title: "OK",
-                                                      style: .cancel))
-                        self?.present(alert, animated: true)
-                        return
-                    }
-                    let userModel = UserModel(uid: uid,
-                                              email: email,
-                                              name: name)
+        
+        signUpViewModel.register(name: name,
+                                 email: email,
+                                 password: password) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let userModel):
                     let mealViewModel = MealViewModel(user: userModel)
                     let mealViewController = MealViewController(mealViewModel: mealViewModel)
                     mealViewController.modalPresentationStyle = .fullScreen
                     mealViewController.isModalInPresentation = true
-                    self?.present(mealViewController, animated: true)
+                    self?.present(mealViewController,
+                                  animated: true)
+                case .failure(let failure):
+                    self?.showAlert(message: failure.localizedDescription)
                 }
             }
         }

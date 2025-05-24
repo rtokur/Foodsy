@@ -8,17 +8,25 @@
 import Foundation
 import FirebaseFirestore
 
+//MARK: - Protocol
 protocol FavoriteServiceProtocol {
-    func addFavorite(_ meal: Meal, userId: String, completion: @escaping (Bool) -> Void)
-    func removeFavorite(_ meal: Meal, userId: String, completion: @escaping (Bool) -> Void)
-    func fetchFavorites(for userId: String, completion: @escaping ([Meal]) -> Void)
+    func addFavorite(_ meal: Meal,
+                     userId: String,
+                     completion: @escaping (Bool) -> Void)
+    func removeFavorite(_ meal: Meal,
+                        userId: String,
+                        completion: @escaping (Bool) -> Void)
+    func fetchFavorites(for userId: String,
+                        completion: @escaping ([Meal]) -> Void)
 }
+
 class FavoriteService: FavoriteServiceProtocol {
+    private let db = Firestore.firestore()
     
     //MARK: - Functions
-    func addFavorite(_ meal: Meal, userId: String, completion: @escaping (Bool) -> Void) {
-        let db = Firestore.firestore()
-        
+    func addFavorite(_ meal: Meal,
+                     userId: String,
+                     completion: @escaping (Bool) -> Void) {
         guard let id = meal.idMeal,
               let imageUrl = meal.strMealThumb,
               let name = meal.strMeal else {
@@ -35,9 +43,9 @@ class FavoriteService: FavoriteServiceProtocol {
         
     }
     
-    func removeFavorite(_ meal: Meal, userId: String, completion: @escaping (Bool) -> Void) {
-        let db = Firestore.firestore()
-        
+    func removeFavorite(_ meal: Meal,
+                        userId: String,
+                        completion: @escaping (Bool) -> Void) {
         guard let id = meal.idMeal else {
             completion(false)
             return
@@ -48,7 +56,6 @@ class FavoriteService: FavoriteServiceProtocol {
     }
     
     func fetchFavorites(for userId: String, completion: @escaping ([Meal]) -> Void) {
-        let db = Firestore.firestore()
         db.collection("users").document(userId).collection("favorites").getDocuments { snapshot, error in
             guard let documents = snapshot?.documents, error == nil else {
                 completion([])

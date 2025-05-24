@@ -17,12 +17,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         let window = UIWindow(windowScene: windowScene)
         self.window = window
-        AuthManager.getCurrentUser { userModel in
+        AuthManager.getCurrentUser { result in
             DispatchQueue.main.async {
-                if let userModel = userModel {
+                switch result {
+                case .success(let userModel):
                     let mealViewModel = MealViewModel(user: userModel)
                     window.rootViewController = MealViewController(mealViewModel: mealViewModel)
-                }else {
+                case .failure:
                     window.rootViewController = LoginViewController()
                 }
                 window.makeKeyAndVisible()

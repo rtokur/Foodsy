@@ -7,6 +7,7 @@
 
 import UIKit
 
+//MARK: - Protocol
 protocol MealCategoryBestRecipeCellDelegate: AnyObject {
     func didTapFavorite(on cell: MealCategoryBestRecipeCollectionViewCell)
 }
@@ -55,9 +56,10 @@ class MealCategoryBestRecipeCollectionViewCell: UICollectionViewCell {
         return button
     }()
     
+    //MARK: - Properties
     weak var delegate: MealCategoryBestRecipeCellDelegate?
     
-    //MARK: - Lifecycle
+    //MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
@@ -119,6 +121,15 @@ class MealCategoryBestRecipeCollectionViewCell: UICollectionViewCell {
         favoriteButton.setImage(UIImage(systemName: imageName,
                                         withConfiguration: configuration),
                                 for: .normal)
+    }
+    
+    func configure(with meal: Meal, isFavorite: Bool) {
+        if let url = meal.mealUrl,
+           let name = meal.strMeal{
+            mealImageView.kf.setImage(with: url)
+            mealNameLabel.text = name
+        }
+        setFavoriteState(isFavorite: isFavorite)
     }
     
     //MARK: - Actions

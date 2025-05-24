@@ -10,29 +10,38 @@ import FirebaseFirestore
 import FirebaseAuth
 
 class CategoryViewModel {
-    //MARK: - Properties
+    // MARK: - Properties
     var selectedCategory: String? {
         didSet {
-            fetchMeals()
+            fetchMealsForSelectedCategory()
         }
     }
+    
     var meals: [Meal] = []
     var favoriteMeals: [Meal] = []
     var categories: [Category] = []
-    private let mealService = MealService()
-    var onDataUpdated: (() -> Void)?
-    private let favoriteService: FavoriteServiceProtocol
-    private let user: UserModel
     
-    init(user: UserModel, favoriteService: FavoriteServiceProtocol = FavoriteService()) {
+    private let mealService: MealService
+    private let favoriteService: FavoriteServiceProtocol
+    let user: UserModel
+    
+    var onDataUpdated: (() -> Void)?
+    
+    // MARK: - Init
+    init(user: UserModel,
+         mealService: MealService = MealService(),
+         favoriteService: FavoriteServiceProtocol = FavoriteService()) {
         self.user = user
+        self.mealService = mealService
         self.favoriteService = favoriteService
     }
     
-    //MARK: - Functions
-    func fetchMeals(){
+    // MARK: - Data Fetching
+    func fetchMealsForSelectedCategory() {
         guard let category = selectedCategory else { return }
-        mealService.fetchMealsForCategory(for: category) { result in
+        
+        mealService.fetchMealsForCategory(for: category) { [weak self] result in
+            guard let self = self else { return }
             switch result {
             case .success(let meals):
                 self.meals = meals
@@ -40,28 +49,41 @@ class CategoryViewModel {
                     self.onDataUpdated?()
                 }
             case .failure(let error):
-                print(error)
-            case .none:
-                return
+                print("⚠️ Failed to fetch meals:", error)
             }
         }
     }
     
-    func fetchCategories(){
-        mealService.fetchCategories { [weak self] categories in
-            guard let self = self, let categories = categories else { return }
-            DispatchQueue.main.async {
+    func fetchCategories() {
+        mealService.fetchCategories { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let categories):
                 self.categories = categories
-                self.onDataUpdated?()
+                DispatchQueue.main.async {
+                    self.onDataUpdated?()
+                }
+            case .failure(let error):
+                print("⚠️ Failed to fetch categories:", error)
             }
         }
     }
     
-    func meal(at index: Int) -> Meal{
+    func loadFavorites(completion: @escaping () -> Void) {
+        favoriteService.fetchFavorites(for: user.uid) { [weak self] favorites in
+            self?.favoriteMeals = favorites
+            DispatchQueue.main.async {
+                completion()
+            }
+        }
+    }
+    
+    // MARK: - Accessors
+    func meal(at index: Int) -> Meal {
         return meals[index]
     }
     
-    var numberOfMeals: Int{
+    var numberOfMeals: Int {
         return meals.count
     }
     
@@ -70,26 +92,39 @@ class CategoryViewModel {
     }
     
     func isFavorite(_ meal: Meal) -> Bool {
-        return favoriteMeals.contains(where: { $0.idMeal == meal.idMeal })
+        return favoriteMeals.contains { $0.idMeal == meal.idMeal }
     }
     
-    func addMealToFavorites(_ meal: Meal, completion: @escaping (Bool) -> Void) {
-        favoriteService.addFavorite(meal, userId: user.uid) { success in
+    // MARK: - Favorite Management
+    func toggleFavoriteState(for meal: Meal, completion: @escaping () -> Void) {
+        if isFavorite(meal) {
+            removeMealFromFavorites(meal, completion: completion)
+        } else {
+            addMealToFavorites(meal, completion: completion)
+        }
+    }
+    
+    func addMealToFavorites(_ meal: Meal, completion: @escaping () -> Void) {
+        favoriteService.addFavorite(meal, userId: user.uid) { [weak self] success in
+            guard let self = self else { return }
             if success {
-                print("Meal added to favorites")
-            } else {
-                print("Failed to add to favorites")
+                self.favoriteMeals.append(meal)
             }
             DispatchQueue.main.async {
-                completion(success)
+                self.onDataUpdated?()
+                completion()
             }
         }
     }
     
-    func loadFavorites(completion: @escaping () -> Void) {
-        favoriteService.fetchFavorites(for: user.uid) { [weak self] meals in
-            self?.favoriteMeals = meals
+    func removeMealFromFavorites(_ meal: Meal, completion: @escaping () -> Void) {
+        favoriteService.removeFavorite(meal, userId: user.uid) { [weak self] success in
+            guard let self = self else { return }
+            if success {
+                self.favoriteMeals.removeAll { $0.idMeal == meal.idMeal }
+            }
             DispatchQueue.main.async {
+                self.onDataUpdated?()
                 completion()
             }
         }

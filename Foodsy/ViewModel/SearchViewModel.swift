@@ -10,34 +10,44 @@ import FirebaseFirestore
 import FirebaseAuth
 
 class SearchViewModel {
-    //MARK: - Properties
+    // MARK: - Dependencies
     private let mealService = MealService()
+    private let favoriteService: FavoriteServiceProtocol
+    private(set) var searchMeals: [Meal] = []
+    private(set) var favoriteMeals: [Meal] = []
     
-    private var searchMeals: [Meal] = []
+    let user: UserModel
     var onDataUpdated: (() -> Void)?
     
+    // MARK: - Init
+    init(user: UserModel, favoriteService: FavoriteServiceProtocol = FavoriteService()) {
+        self.user = user
+        self.favoriteService = favoriteService
+    }
+    
+    // MARK: - Search Logic
     func search(with text: String) {
-        mealService.searchMeal(with: text) { [weak self] meals in
-            switch meals {
+        mealService.searchMeal(with: text) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
             case .success(let meals):
-                self?.searchMeals = meals
-                DispatchQueue.main.async{
-                    self?.onDataUpdated?()
+                self.searchMeals = meals
+                DispatchQueue.main.async {
+                    self.onDataUpdated?()
                 }
-            case .failure(let failure):
-                print(failure)
-            case nil:
-                return
+            case .failure(let error):
+                print("Search failed: \(error.localizedDescription)")
             }
         }
     }
     
-    func searchMeal(at index: Int) -> Meal {
-        return searchMeals[index]
-    }
-    
+    // MARK: - Accessors
     func numberOfMeals() -> Int {
         return searchMeals.count
+    }
+    
+    func searchMeal(at index: Int) -> Meal {
+        return searchMeals[index]
     }
     
     func isResultEmpty() -> Bool {
@@ -46,59 +56,63 @@ class SearchViewModel {
     
     func ingredients(for index: Int) -> [String] {
         let meal = searchMeals[index]
-        var result: [String] = []
-
-        let ingredientList = [
-            meal.strIngredient1,
-            meal.strIngredient2,
-            meal.strIngredient3,
-            meal.strIngredient4,
-            meal.strIngredient5,
-            meal.strIngredient6,
-            meal.strIngredient7,
-            meal.strIngredient8,
-            meal.strIngredient9,
-            meal.strIngredient10,
-            meal.strIngredient11,
-            meal.strIngredient12,
-            meal.strIngredient13,
-            meal.strIngredient14,
-            meal.strIngredient15,
-            meal.strIngredient16,
-            meal.strIngredient17,
-            meal.strIngredient18,
-            meal.strIngredient19,
-            meal.strIngredient20
-        ]
-        
-        for ingredient in ingredientList {
-            if let ingredient = ingredient,
+        return (1...20).compactMap { i in
+            let key = "strIngredient\(i)"
+            if let ingredient = Mirror(reflecting: meal).children.first(where: { $0.label == key })?.value as? String,
                !ingredient.trimmingCharacters(in: .whitespaces).isEmpty {
-                result.append(ingredient)
+                return ingredient
             }
+            return nil
         }
-        return result
+    }
+
+    // MARK: - Favorites
+    func isFavorite(_ meal: Meal) -> Bool {
+        return favoriteMeals.contains(where: { $0.idMeal == meal.idMeal })
     }
     
-    func addMealToFavorites(_ meal: Meal) {
-        let db = Firestore.firestore()
-        guard let currentUserId = Auth.auth().currentUser?.uid else { return }
-        if let id = meal.idMeal,
-           let imageUrl = meal.strMealThumb,
-           let name = meal.strMeal{
-            let mealData: [String: Any] = ["id": id,
-                                           "imageUrl": imageUrl,
-                                           "name": name,
-                                           "isFavorite": true]
-            db.collection("users").document(currentUserId).collection("favorites").document(id).setData(mealData) { error in
-                if let error = error {
-                    print("favorite saving failed.",
-                          error.localizedDescription)
-                }else {
-                    print("favorite saved succesfully.")
-                }
+    func loadFavorites(completion: @escaping () -> Void) {
+        favoriteService.fetchFavorites(for: user.uid) { [weak self] meals in
+            guard let self = self else { return }
+            self.favoriteMeals = meals
+            DispatchQueue.main.async {
+                completion()
+                self.onDataUpdated?()
             }
         }
-        
+    }
+
+    func toggleFavoriteState(for meal: Meal, completion: @escaping () -> Void) {
+        if isFavorite(meal) {
+            removeMealFromFavorites(meal, completion: completion)
+        } else {
+            addMealToFavorites(meal, completion: completion)
+        }
+    }
+    
+    private func addMealToFavorites(_ meal: Meal, completion: @escaping () -> Void) {
+        favoriteService.addFavorite(meal, userId: user.uid) { [weak self] success in
+            guard let self = self else { return }
+            if success {
+                self.favoriteMeals.append(meal)
+            }
+            DispatchQueue.main.async {
+                self.onDataUpdated?()
+                completion()
+            }
+        }
+    }
+    
+    private func removeMealFromFavorites(_ meal: Meal, completion: @escaping () -> Void) {
+        favoriteService.removeFavorite(meal, userId: user.uid) { [weak self] success in
+            guard let self = self else { return }
+            if success {
+                self.favoriteMeals.removeAll { $0.idMeal == meal.idMeal }
+            }
+            DispatchQueue.main.async {
+                self.onDataUpdated?()
+                completion()
+            }
+        }
     }
 }

@@ -6,11 +6,12 @@
 //
 
 import UIKit
-import FirebaseAuth
-import FirebaseFirestore
 import SkyFloatingLabelTextField
 
 class LoginViewController: UIViewController {
+    //MARK: - Properties
+    private let loginViewModel = LoginViewModel()
+    
     //MARK: - UI Elements
     private let colorView: UIView = {
         let view = UIView()
@@ -102,7 +103,10 @@ class LoginViewController: UIViewController {
         button.addTarget(self,
                          action: #selector(toogleEyeButtonAction),
                          for: .touchUpInside)
-        button.frame = CGRect(x: 0, y: 0, width: 30, height: 30)
+        button.frame = CGRect(x: 0,
+                              y: 0,
+                              width: 30,
+                              height: 30)
         return button
     }()
     
@@ -187,7 +191,8 @@ class LoginViewController: UIViewController {
         let button = UIButton()
         button.backgroundColor = .white
         button.setTitle("Sign up", for: .normal)
-        button.setTitleColor(UIColor(named: Constant.pink), for: .normal)
+        button.setTitleColor(UIColor(named: Constant.pink),
+                             for: .normal)
         button.contentHorizontalAlignment = .left
         button.titleLabel?.font = .systemFont(ofSize: 12)
         button.layer.cornerRadius = 25
@@ -295,50 +300,23 @@ class LoginViewController: UIViewController {
     @objc func signInButtonAction(_ sender: UIButton){
         guard let email = emailTextField.text,
               let password = passwordTextField.text else {
-            let alert = UIAlertController(title: "Error",
-                                          message: "Please fill the areas.",
-                                          preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK",
-                                          style: .cancel))
-            present(alert, animated: true)
+            showAlert(message: "Please fill all fields.")
             return
         }
         
-        Auth.auth().signIn(withEmail: email,
-                           password: password) { [weak self] result, error in
-            if let error = error {
-                let alert = UIAlertController(title: "Error",
-                                              message: error.localizedDescription,
-                                              preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "OK",
-                                              style: .cancel))
-                self?.present(alert, animated: true)
-                return
-            }
-            if let user = Auth.auth().currentUser {
-                let uid = user.uid
-                let email = user.email
-                
-                let db = Firestore.firestore()
-                db.collection("users").document(uid).getDocument { snapshot, error in
-                    if let error = error {
-                        print("Not taken user from Firebase: \(error)")
-                        return
-                    }
-                    guard let data = snapshot?.data(),
-                          let username = data["username"] as? String else {
-                        print("No username info.")
-                        return
-                    }
-                    
-                    let userModel = UserModel(uid: user.uid,
-                                              email: user.email,
-                                              name: username)
+        loginViewModel.login(email: email,
+                             password: password) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let userModel):
                     let mealViewModel = MealViewModel(user: userModel)
                     let mealViewController = MealViewController(mealViewModel: mealViewModel)
                     mealViewController.modalPresentationStyle = .fullScreen
                     mealViewController.isModalInPresentation = true
-                    self?.present(mealViewController, animated: true)
+                    self?.present(mealViewController,
+                                  animated: true)
+                case .failure(let failure):
+                    self?.showAlert(message: failure.localizedDescription)
                 }
             }
         }
@@ -359,3 +337,4 @@ class LoginViewController: UIViewController {
                                  for: .normal)
     }
 }
+

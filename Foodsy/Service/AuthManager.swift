@@ -7,10 +7,16 @@
 import FirebaseAuth
 import FirebaseFirestore
 
+enum AuthError: Error {
+    case userNotFound
+    case dataFetchFailed(String)
+    case missingFields
+}
+
 struct AuthManager {
-    static func getCurrentUser(completion: @escaping (UserModel?) -> Void){
+    static func getCurrentUser(completion: @escaping (Result<UserModel, AuthError>) -> Void){
         guard let user = Auth.auth().currentUser else {
-            completion(nil)
+            completion(.failure(.userNotFound))
             return
         }
         
@@ -18,18 +24,18 @@ struct AuthManager {
         db.collection("users").document(user.uid).getDocument { snapshot, error in
             if let error = error {
                 print(error.localizedDescription)
-                completion(nil)
+                completion(.failure(.dataFetchFailed(error.localizedDescription)))
                 return
             }
             
             guard let data = snapshot?.data(),
                   let name = data["username"] as? String else {
-                completion(nil)
+                completion(.failure(.missingFields))
                 return
             }
             
             let userModel = UserModel(uid: user.uid, email: user.email, name: name)
-            completion(userModel)
+            completion(.success(userModel))
         }
     }
 }

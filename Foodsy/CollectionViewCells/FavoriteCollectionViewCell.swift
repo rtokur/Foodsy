@@ -7,18 +7,19 @@
 
 import UIKit
 
+protocol FavoriteCellDelegate: AnyObject {
+    func didTapFavorite(on cell: FavoriteCollectionViewCell)
+}
+
 class FavoriteCollectionViewCell: UICollectionViewCell {
+    //MARK: - Properties
     var isFavorite: Bool = false {
         didSet {
-            let configuration = UIImage.SymbolConfiguration(pointSize: 20)
-            let imageName = isFavorite ? "heart.fill" : "heart"
-            favoriteButton.setImage(UIImage(systemName: imageName,
-                                            withConfiguration: configuration),
-                                    for: .normal)
+            updateFavoriteIcon()
         }
     }
     
-    var onFavoriteTapped: (() -> Void)?
+    weak var delegate: FavoriteCellDelegate?
     
     //MARK: - UI Elements
     let favoriteImageView: UIImageView = {
@@ -62,6 +63,7 @@ class FavoriteCollectionViewCell: UICollectionViewCell {
         return button
     }()
     
+    //MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
         
@@ -108,7 +110,7 @@ class FavoriteCollectionViewCell: UICollectionViewCell {
     }
     
     //MARK: - Functions
-    func setupGradient(){
+    func setupGradient() {
         gradientLayer.colors = [UIColor.black.withAlphaComponent(0.9).cgColor,
                                 UIColor.clear.cgColor]
         gradientLayer.startPoint = CGPoint(x: 0.5,
@@ -118,8 +120,29 @@ class FavoriteCollectionViewCell: UICollectionViewCell {
         gradientView.layer.addSublayer(gradientLayer)
     }
     
+    func updateFavoriteIcon() {
+        let configuration = UIImage.SymbolConfiguration(pointSize: 20)
+        let imageName = isFavorite ? "heart.fill" : "heart"
+        favoriteButton.setImage(UIImage(systemName: imageName,
+                                        withConfiguration: configuration),
+                                for: .normal)
+    }
+    
+    func configure(with meal: Meal,
+                   isFavorite: Bool){
+        if let url = meal.mealUrl,
+           let name = meal.strMeal{
+            favoriteImageView.kf.setImage(with: url)
+            favoriteLabel.text = name
+        }
+        self.isFavorite = isFavorite
+    }
+    
     //MARK: - Actions
     @objc private func favoriteButtonTapped() {
-        onFavoriteTapped?()
+        delegate?.didTapFavorite(on: self)
     }
+    
+    
+    
 }
