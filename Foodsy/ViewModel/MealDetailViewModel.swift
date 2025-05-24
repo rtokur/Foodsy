@@ -11,7 +11,7 @@ import FirebaseAuth
 
 class MealDetailViewModel {
     //MARK: - Properties
-    private let mealService = MealService()
+    private let mealService: MealServiceProtocol
     private let favoriteService: FavoriteServiceProtocol
     private let user: UserModel
     
@@ -22,17 +22,21 @@ class MealDetailViewModel {
     // MARK: - Init
     init(meal: Meal,
          user: UserModel,
-         favoriteService: FavoriteServiceProtocol = FavoriteService()) {
+         favoriteService: FavoriteServiceProtocol = FavoriteService(),
+         mealService: MealServiceProtocol = MealService()) {
         self.meal = meal
         self.user = user
         self.favoriteService = favoriteService
+        self.mealService = mealService
     }
     
     init(mealId: String,
          user: UserModel,
-         favoriteService: FavoriteServiceProtocol = FavoriteService()){
+         favoriteService: FavoriteServiceProtocol = FavoriteService(),
+         mealService: MealServiceProtocol = MealService()){
         self.user = user
         self.favoriteService = favoriteService
+        self.mealService = mealService
         fetchMealById(by: mealId)
     }
     

@@ -21,7 +21,7 @@ class CategoryViewModel {
     var favoriteMeals: [Meal] = []
     var categories: [Category] = []
     
-    private let mealService: MealService
+    private let mealService: MealServiceProtocol
     private let favoriteService: FavoriteServiceProtocol
     let user: UserModel
     
@@ -29,7 +29,7 @@ class CategoryViewModel {
     
     // MARK: - Init
     init(user: UserModel,
-         mealService: MealService = MealService(),
+         mealService: MealServiceProtocol = MealService(),
          favoriteService: FavoriteServiceProtocol = FavoriteService()) {
         self.user = user
         self.mealService = mealService

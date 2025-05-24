@@ -47,16 +47,7 @@ class BestRecipeViewController: UIViewController {
         label.textAlignment = .center
         return label
     }()
-    
-    private let moreButton: UIButton = {
-        let button = UIButton()
-        button.backgroundColor = .clear
-        button.tintColor = .black
-        button.setImage(UIImage(systemName: "ellipsis"),
-                        for: .normal)
-        return button
-    }()
-    
+
     private let bestRecipeCategoryCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.itemSize = CGSize(width: 170,
@@ -83,13 +74,13 @@ class BestRecipeViewController: UIViewController {
             make.height.equalTo(self.bestRecipeCategoryCollectionView.collectionViewLayout.collectionViewContentSize.height)
         }
     }
+    
     //MARK: - Setup Methods
     func setupViews(){
         view.backgroundColor = .white
         view.addSubview(stackView1)
         stackView1.addArrangedSubview(backButton)
         stackView1.addArrangedSubview(categoryLabel)
-        stackView1.addArrangedSubview(moreButton)
         view.addSubview(bestRecipeCategoryCollectionView)
         bestRecipeCategoryCollectionView.delegate = self
         bestRecipeCategoryCollectionView.dataSource = self
@@ -100,16 +91,14 @@ class BestRecipeViewController: UIViewController {
     func setupConstraints(){
         stackView1.snp.makeConstraints { make in
             make.height.equalTo(50)
-            make.leading.trailing.top.equalTo(view.safeAreaLayoutGuide)
+            make.leading.top.equalTo(view.safeAreaLayoutGuide)
+            make.trailing.equalTo(view.safeAreaLayoutGuide).inset(50)
         }
         backButton.snp.makeConstraints { make in
             make.width.equalTo(50)
         }
         categoryLabel.snp.makeConstraints { make in
             make.height.equalToSuperview()
-        }
-        moreButton.snp.makeConstraints { make in
-            make.width.equalTo(50)
         }
         bestRecipeCategoryCollectionView.snp.makeConstraints { make in
             make.height.equalTo(1)
@@ -147,6 +136,15 @@ extension BestRecipeViewController: UICollectionViewDelegate,
         let userModel = bestRecipeViewModel.user
         let mealDetailViewModel = MealDetailViewModel(meal: meal, user: userModel)
         let mealDetailViewController = MealDetailViewController(mealDetailViewModel: mealDetailViewModel)
+        mealDetailViewController.onFavoriteUpdated = { [weak self] in
+            guard let self = self else { return }
+            self.bestRecipeViewModel.loadFavorites {
+
+                DispatchQueue.main.async {
+                    self.bestRecipeCategoryCollectionView.reloadItems(at: [indexPath])
+                }
+            }
+        }
         mealDetailViewController.modalPresentationStyle = .fullScreen
         mealDetailViewController.isModalInPresentation = true
         present(mealDetailViewController,

@@ -10,6 +10,7 @@ import UIKit
 class MealDetailViewController: UIViewController {
     //MARK: - Properties
     var mealDetailViewModel: MealDetailViewModel
+    var onFavoriteUpdated: (() -> Void)?
     
     init(mealDetailViewModel: MealDetailViewModel) {
         self.mealDetailViewModel = mealDetailViewModel
@@ -373,6 +374,7 @@ class MealDetailViewController: UIViewController {
             guard let self = self else { return }
             let updatedIsFavorite = self.mealDetailViewModel.isFavorite(meal)
             setFavoriteState(isFavorite: updatedIsFavorite)
+            self.onFavoriteUpdated?()
         }
     }
 }

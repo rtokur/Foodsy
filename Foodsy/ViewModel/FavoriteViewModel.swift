@@ -21,11 +21,12 @@ class FavoriteViewModel {
     }
     
     // MARK: - Data Fetching
-    func loadFavorites() {
+    func loadFavorites(completion: @escaping () -> Void) {
         favoriteService.fetchFavorites(for: user.uid) { [weak self] favorites in
             self?.favoriteMeals = favorites
             DispatchQueue.main.async {
                 self?.onDataUpdated?()
+                completion()
             }
         }
     }

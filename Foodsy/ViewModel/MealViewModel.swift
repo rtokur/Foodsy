@@ -11,7 +11,7 @@ import FirebaseAuth
 
 class MealViewModel{
     //MARK: - Properties
-    private let mealService: MealService
+    private let mealService: MealServiceProtocol
     private let favoriteService: FavoriteServiceProtocol
     var meals: [Meal] = []
     var categories: [Category] = []
@@ -19,6 +19,8 @@ class MealViewModel{
     
     let user: UserModel
     var onDataUpdated: (() -> Void)?
+    var onLogout: (() -> Void)?
+    var onLogoutError: ((String) -> Void)?
     
     var userName: String {
         return user.name
@@ -27,7 +29,7 @@ class MealViewModel{
     // MARK: - Init
     init(user: UserModel,
          favoriteService: FavoriteServiceProtocol = FavoriteService(),
-         mealService: MealService = MealService()) {
+         mealService: MealServiceProtocol = MealService()) {
         self.user = user
         self.favoriteService = favoriteService
         self.mealService = mealService
@@ -71,6 +73,22 @@ class MealViewModel{
             DispatchQueue.main.async {
                 completion()
                 self.onDataUpdated?()
+            }
+        }
+    }
+    
+    func logOut() {
+        AuthManager.signOut { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let success):
+                DispatchQueue.main.async {
+                    self.onLogout?()
+                }
+            case .failure(let failure):
+                DispatchQueue.main.async {
+                    self.onLogoutError?(failure.localizedDescription)
+                }
             }
         }
     }

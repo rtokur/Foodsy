@@ -6,8 +6,16 @@
 //
 
 import Foundation
+//MARK: - Protocol
+protocol MealServiceProtocol {
+    func fetchFoods(completion: @escaping (Result<[Meal], Error>) -> Void)
+    func fetchCategories(completion: @escaping (Result<[Category], Error>) -> Void)
+    func fetchMealsForCategory(for category: String, completion: @escaping (Result<[Meal], Error>) -> Void)
+    func fetchMealDetailById(by id: String, completion: @escaping (Result<[Meal], Error>) -> Void)
+    func searchMeal(with text: String, completion: @escaping (Result<[Meal], Error>) -> Void)
+}
 
-class MealService {
+class MealService: MealServiceProtocol {
     private let baseURL = "https://www.themealdb.com/api/json/v1/1/"
     
     // MARK: - Fetch All Meals

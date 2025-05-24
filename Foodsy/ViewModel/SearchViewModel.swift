@@ -11,7 +11,7 @@ import FirebaseAuth
 
 class SearchViewModel {
     // MARK: - Dependencies
-    private let mealService = MealService()
+    private let mealService: MealServiceProtocol
     private let favoriteService: FavoriteServiceProtocol
     private(set) var searchMeals: [Meal] = []
     private(set) var favoriteMeals: [Meal] = []
@@ -20,9 +20,13 @@ class SearchViewModel {
     var onDataUpdated: (() -> Void)?
     
     // MARK: - Init
-    init(user: UserModel, favoriteService: FavoriteServiceProtocol = FavoriteService()) {
+    init(user: UserModel,
+         favoriteService: FavoriteServiceProtocol = FavoriteService(),
+         mealService: MealServiceProtocol = MealService()
+         ) {
         self.user = user
         self.favoriteService = favoriteService
+        self.mealService = mealService
     }
     
     // MARK: - Search Logic

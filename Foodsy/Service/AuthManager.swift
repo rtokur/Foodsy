@@ -11,6 +11,7 @@ enum AuthError: Error {
     case userNotFound
     case dataFetchFailed(String)
     case missingFields
+    case signOutFailed(String)
 }
 
 struct AuthManager {
@@ -36,6 +37,15 @@ struct AuthManager {
             
             let userModel = UserModel(uid: user.uid, email: user.email, name: name)
             completion(.success(userModel))
+        }
+    }
+    
+    static func signOut(completion: @escaping (Result<Void, AuthError>) -> Void) {
+        do {
+            try Auth.auth().signOut()
+            completion(.success(()))
+        } catch {
+            completion(.failure(.signOutFailed(error.localizedDescription)))
         }
     }
 }

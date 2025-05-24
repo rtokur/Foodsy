@@ -61,12 +61,16 @@ class MealViewController: UIViewController {
         return label
     }()
     
-    private let userImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.image = UIImage(named: "user")!.withTintColor(UIColor(named: Constant.pink)!)
-        imageView.backgroundColor = .clear
-        imageView.layer.cornerRadius = 25
-        return imageView
+    private let userLogOutButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage(named: "logout")!.withTintColor(UIColor(named: Constant.pink)!),
+                        for: .normal)
+        button.addTarget(self,
+                         action: #selector(logOut),
+                         for: .touchUpInside)
+        button.backgroundColor = .clear
+        button.layer.cornerRadius = 25
+        return button
     }()
     
     private let stackView1: UIStackView = {
@@ -214,6 +218,21 @@ class MealViewController: UIViewController {
                                                                                                     attributes: [.font: UIFont.boldSystemFont(ofSize: 20),
                                                                                                                  .foregroundColor: UIColor.black]))
         }
+        mealViewModel.onLogout = { [weak self] in
+            guard let self = self else { return }
+            let loginViewController = LoginViewController()
+            loginViewController.modalPresentationStyle = .fullScreen
+            loginViewController.isModalInPresentation = true
+            self.present(loginViewController,
+                          animated: true)
+            
+        }
+        
+        mealViewModel.onLogoutError = { [weak self] message in
+            guard let self = self else { return }
+            self.showAlert(message: message)
+        }
+        
         mealViewModel.loadCategories()
         configureMenu()
     }
@@ -235,7 +254,7 @@ class MealViewController: UIViewController {
         
         stackView3.addArrangedSubview(whatDoYouWantLabel)
         
-        stackView2.addArrangedSubview(userImageView)
+        stackView2.addArrangedSubview(userLogOutButton)
         
         view.addSubview(stackView1)
         
@@ -284,7 +303,7 @@ class MealViewController: UIViewController {
         whatDoYouWantLabel.snp.makeConstraints { make in
             make.width.equalToSuperview()
         }
-        userImageView.snp.makeConstraints { make in
+        userLogOutButton.snp.makeConstraints { make in
             make.width.height.equalTo(50)
         }
         stackView1.snp.makeConstraints { make in
@@ -361,13 +380,16 @@ class MealViewController: UIViewController {
     }
     
     @objc func goToBestRecipe(_ sender: UIButton){
-        let userModel = self.mealViewModel.user
-        let bestRecipeViewModel = MealViewModel(user: userModel)
+        let bestRecipeViewModel = self.mealViewModel
         let bestRecipeViewController = BestRecipeViewController(bestRecipeViewModel: bestRecipeViewModel)
         bestRecipeViewController.modalPresentationStyle = .fullScreen
         bestRecipeViewController.isModalInPresentation = true
         present(bestRecipeViewController,
                 animated: true)
+    }
+    
+    @objc func logOut(_ sender: UIButton) {
+        mealViewModel.logOut()
     }
 }
 
@@ -413,6 +435,15 @@ extension MealViewController: UICollectionViewDelegate,
             let mealDetailViewModel = MealDetailViewModel(meal: meal,
                                                           user: userModel)
             let mealDetailViewController = MealDetailViewController(mealDetailViewModel: mealDetailViewModel)
+            mealDetailViewController.onFavoriteUpdated = { [weak self] in
+                guard let self = self else { return }
+                self.mealViewModel.loadFavorites {
+
+                    DispatchQueue.main.async {
+                        self.mealCollectionView.reloadItems(at: [indexPath])
+                    }
+                }
+            }
             mealDetailViewController.modalPresentationStyle = .fullScreen
             mealDetailViewController.isModalInPresentation = true
             present(mealDetailViewController,

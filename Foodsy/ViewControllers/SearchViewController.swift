@@ -180,6 +180,14 @@ extension SearchViewController: UICollectionViewDelegate,
         let mealDetailViewModel = MealDetailViewModel(meal: meal,
                                 user: userModel)
         let mealDetailViewController = MealDetailViewController(mealDetailViewModel: mealDetailViewModel)
+        mealDetailViewController.onFavoriteUpdated = { [weak self] in
+            guard let self = self else { return }
+            self.searchViewModel.loadFavorites {
+                DispatchQueue.main.async {
+                    self.searchCategoryCollectionView.reloadItems(at: [indexPath])
+                }
+            }
+        }
         mealDetailViewController.modalPresentationStyle = .fullScreen
         mealDetailViewController.isModalInPresentation = true
         present(mealDetailViewController,

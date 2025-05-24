@@ -49,16 +49,7 @@ class FavoriteViewController: UIViewController {
         label.textAlignment = .center
         return label
     }()
-    
-    private let moreButton: UIButton = {
-        let button = UIButton()
-        button.backgroundColor = .clear
-        button.tintColor = .black
-        button.setImage(UIImage(systemName: "ellipsis"),
-                        for: .normal)
-        return button
-    }()
-    
+
     private let favoriteCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.itemSize = CGSize(width: 170,
@@ -87,7 +78,7 @@ class FavoriteViewController: UIViewController {
                 }
             }
         }
-        favoriteViewModel.loadFavorites()
+        favoriteViewModel.loadFavorites {}
     }
 
     //MARK: - Setup Methods
@@ -96,7 +87,6 @@ class FavoriteViewController: UIViewController {
         view.addSubview(stackView)
         stackView.addArrangedSubview(backButton)
         stackView.addArrangedSubview(favoriteLabel)
-        stackView.addArrangedSubview(moreButton)
         view.addSubview(favoriteCollectionView)
         favoriteCollectionView.delegate = self
         favoriteCollectionView.dataSource = self
@@ -107,16 +97,14 @@ class FavoriteViewController: UIViewController {
     func setupConstraints(){
         stackView.snp.makeConstraints { make in
             make.height.equalTo(50)
-            make.leading.trailing.top.equalTo(view.safeAreaLayoutGuide)
+            make.leading.top.equalTo(view.safeAreaLayoutGuide)
+            make.trailing.equalTo(view.safeAreaLayoutGuide).inset(50)
         }
         backButton.snp.makeConstraints { make in
             make.width.equalTo(50)
         }
         favoriteLabel.snp.makeConstraints { make in
             make.height.equalToSuperview()
-        }
-        moreButton.snp.makeConstraints { make in
-            make.width.equalTo(50)
         }
         favoriteCollectionView.snp.makeConstraints { make in
             make.height.equalTo(1)
@@ -158,6 +146,14 @@ extension FavoriteViewController: UICollectionViewDelegate,
         let mealDetailViewModel = MealDetailViewModel(mealId: meal.idMeal ?? "",
                                 user: userModel)
         let mealDetailViewController = MealDetailViewController(mealDetailViewModel: mealDetailViewModel)
+        mealDetailViewController.onFavoriteUpdated = { [weak self] in
+            guard let self = self else { return }
+            self.favoriteViewModel.loadFavorites {
+                DispatchQueue.main.async {
+                    self.favoriteCollectionView.reloadItems(at: [indexPath])
+                }
+            }
+        }
         mealDetailViewController.isModalInPresentation = true
         mealDetailViewController.modalPresentationStyle = .fullScreen
         self.present(mealDetailViewController,

@@ -48,15 +48,6 @@ class CategoryViewController: UIViewController {
         return label
     }()
     
-    private let moreButton: UIButton = {
-        let button = UIButton()
-        button.backgroundColor = .clear
-        button.tintColor = .black
-        button.setImage(UIImage(systemName: "ellipsis"),
-                        for: .normal)
-        return button
-    }()
-    
     private let categoryScrollView: UIScrollView = {
         let scrollView = UIScrollView()
         scrollView.showsHorizontalScrollIndicator = false
@@ -108,14 +99,13 @@ class CategoryViewController: UIViewController {
         }
         categoryViewModel.fetchCategories()
     }
-    
+
     //MARK: - Setup Methods
     func setupViews(){
         view.backgroundColor = .white
         view.addSubview(stackView2)
         stackView2.addArrangedSubview(backButton)
         stackView2.addArrangedSubview(categoryLabel)
-        stackView2.addArrangedSubview(moreButton)
         view.addSubview(categoryScrollView)
         categoryScrollView.addSubview(categoryStackView)
         view.addSubview(mealCategoryCollectionView)
@@ -128,16 +118,14 @@ class CategoryViewController: UIViewController {
     func setupConstraints(){
         stackView2.snp.makeConstraints { make in
             make.height.equalTo(50)
-            make.leading.trailing.top.equalTo(view.safeAreaLayoutGuide)
+            make.leading.top.equalTo(view.safeAreaLayoutGuide)
+            make.trailing.equalTo(view.safeAreaLayoutGuide).inset(50)
         }
         backButton.snp.makeConstraints { make in
             make.width.equalTo(50)
         }
         categoryLabel.snp.makeConstraints { make in
             make.height.equalToSuperview()
-        }
-        moreButton.snp.makeConstraints { make in
-            make.width.equalTo(50)
         }
         categoryScrollView.snp.makeConstraints { make in
             make.height.equalTo(50)
@@ -253,6 +241,15 @@ extension CategoryViewController: UICollectionViewDelegate,
         let mealDetailViewModel = MealDetailViewModel(mealId: meal.idMeal ?? "",
                                 user: userModel)
         let mealDetailViewController = MealDetailViewController(mealDetailViewModel: mealDetailViewModel)
+        mealDetailViewController.onFavoriteUpdated = { [weak self] in
+            guard let self = self else { return }
+            self.categoryViewModel.loadFavorites {
+
+                DispatchQueue.main.async {
+                    self.mealCategoryCollectionView.reloadItems(at: [indexPath])
+                }
+            }
+        }
         mealDetailViewController.isModalInPresentation = true
         mealDetailViewController.modalPresentationStyle = .fullScreen
         self.present(mealDetailViewController, animated: true)
