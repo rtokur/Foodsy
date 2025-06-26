@@ -13,6 +13,13 @@ class SignUpViewController: UIViewController {
     private let signUpViewModel = SignUpViewModel()
     
     //MARK: - UI Elements
+    private let scrollView: UIScrollView = {
+        let scrollView = UIScrollView()
+        scrollView.showsVerticalScrollIndicator = false
+        scrollView.backgroundColor = UIColor(named: Constant.lightGray)
+        return scrollView
+    }()
+    
     private let colorView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 30
@@ -207,11 +214,14 @@ class SignUpViewController: UIViewController {
 
     //MARK: - Setup Methods
     func setupViews(){
-        view.backgroundColor = .white
-        view.backgroundColor = UIColor(named: Constant.lightGray)
-        view.addSubview(colorView)
-        view.addSubview(reflectionView)
-        view.addSubview(signUpView)
+        view.addSubview(scrollView)
+        scrollView.addSubview(colorView)
+        scrollView.addSubview(reflectionView)
+        scrollView.addSubview(signUpView)
+        let tapGesture = UITapGestureRecognizer(target: self,
+                                                action: #selector(dismissKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
         signUpView.addSubview(stackView)
         stackView.addArrangedSubview(logoImageView)
         stackView.addArrangedSubview(signUpLabel)
@@ -231,20 +241,24 @@ class SignUpViewController: UIViewController {
     }
     
     func setupConstraints(){
+        scrollView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
         colorView.snp.makeConstraints { make in
             make.top.equalToSuperview()
-            make.leading.trailing.equalToSuperview()
+            make.width.equalToSuperview()
             make.height.equalTo(420)
         }
         reflectionView.snp.makeConstraints { make in
-            make.top.equalTo(view.safeAreaLayoutGuide).inset(105)
-            make.leading.trailing.equalToSuperview().inset(40)
+            make.bottom.equalTo(signUpView.snp.top).inset(25)
             make.height.equalTo(50)
+            make.leading.trailing.equalToSuperview().inset(40)
+            make.centerX.equalToSuperview()
         }
         signUpView.snp.makeConstraints { make in
             make.height.equalTo(600)
             make.leading.trailing.equalToSuperview().inset(20)
-            make.bottom.equalToSuperview().inset(90)
+            make.center.equalToSuperview()
         }
         stackView.snp.makeConstraints { make in
             make.edges.equalToSuperview().inset(15)
@@ -328,7 +342,8 @@ class SignUpViewController: UIViewController {
                     self?.present(mealViewController,
                                   animated: true)
                 case .failure(let failure):
-                    self?.showAlert(message: failure.localizedDescription)
+                    print(failure.localizedDescription)
+                    self?.showAlert(message: "Please fill the areas correctly.")
                 }
             }
         }
@@ -336,5 +351,9 @@ class SignUpViewController: UIViewController {
     
     @objc func signInButtonAction(_ sender: UIButton){
         dismiss(animated: true)
+    }
+    
+    @objc func dismissKeyboard(){
+        view.endEditing(true)
     }
 }

@@ -7,12 +7,20 @@
 
 import UIKit
 import SkyFloatingLabelTextField
+import GoogleSignIn
 
 class LoginViewController: UIViewController {
     //MARK: - Properties
     private let loginViewModel = LoginViewModel()
     
     //MARK: - UI Elements
+    private let scrollView: UIScrollView = {
+        let scrollView = UIScrollView()
+        scrollView.backgroundColor = UIColor(named: Constant.lightGray)
+        scrollView.showsVerticalScrollIndicator = false
+        return scrollView
+    }()
+    
     private let colorView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 30
@@ -153,21 +161,27 @@ class LoginViewController: UIViewController {
         button.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.5).cgColor
         button.layer.borderWidth = 1
         button.layer.cornerRadius = 25
+        button.addTarget(self,
+                         action: #selector(SignInWithGoogle),
+                         for: .touchUpInside)
         return button
     }()
     
-    private let appleButton: UIButton = {
+    private let gitHubButton: UIButton = {
         let button = UIButton()
         var configuration = UIButton.Configuration.plain()
-        configuration.attributedTitle = AttributedString(NSAttributedString(string: "Apple",
+        configuration.attributedTitle = AttributedString(NSAttributedString(string: "GitHub",
                                                                             attributes: Constant.attributesGoogleButton))
-        configuration.image = UIImage(systemName: "clock")
+        configuration.image = UIImage(named: "github")
         configuration.imagePadding = 10
         button.configuration = configuration
         button.backgroundColor = .white
         button.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.5).cgColor
         button.layer.borderWidth = 1
         button.layer.cornerRadius = 25
+        button.addTarget(self,
+                         action: #selector(SignInWithGitHub),
+                         for: .touchUpInside)
         return button
     }()
     
@@ -210,10 +224,16 @@ class LoginViewController: UIViewController {
     
     //MARK: - Setup Methods
     func setupViews(){
-        view.backgroundColor = UIColor(named: Constant.lightGray)
-        view.addSubview(colorView)
-        view.addSubview(reflectionView)
-        view.addSubview(loginView)
+        view.addSubview(scrollView)
+        scrollView.addSubview(colorView)
+        scrollView.addSubview(reflectionView)
+        scrollView.addSubview(loginView)
+        
+        let tapGesture = UITapGestureRecognizer(target: self,
+                                                action: #selector(dismissKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
+        
         loginView.addSubview(stackView)
         stackView.addArrangedSubview(logoImageView)
         stackView.addArrangedSubview(signInLabel)
@@ -226,27 +246,31 @@ class LoginViewController: UIViewController {
         stackView.addArrangedSubview(orLoginWithLabel)
         stackView.addArrangedSubview(stackView2)
         stackView2.addArrangedSubview(googleButton)
-        stackView2.addArrangedSubview(appleButton)
+        stackView2.addArrangedSubview(gitHubButton)
         stackView.addArrangedSubview(stackView3)
         stackView3.addArrangedSubview(dontHaveAccountLabel)
         stackView3.addArrangedSubview(signUpButton)
     }
     
     func setupConstraints(){
+        scrollView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
         colorView.snp.makeConstraints { make in
             make.top.equalToSuperview()
-            make.leading.trailing.equalToSuperview()
+            make.width.equalToSuperview()
             make.height.equalTo(420)
         }
         reflectionView.snp.makeConstraints { make in
-            make.top.equalTo(view.safeAreaLayoutGuide).inset(105)
-            make.leading.trailing.equalToSuperview().inset(40)
+            make.bottom.equalTo(loginView.snp.top).inset(25)
             make.height.equalTo(50)
+            make.leading.trailing.equalToSuperview().inset(40)
+            make.centerX.equalToSuperview()
         }
         loginView.snp.makeConstraints { make in
             make.height.equalTo(600)
             make.leading.trailing.equalToSuperview().inset(20)
-            make.bottom.equalToSuperview().inset(90)
+            make.center.equalToSuperview()
         }
         stackView.snp.makeConstraints { make in
             make.edges.equalToSuperview().inset(15)
@@ -281,7 +305,7 @@ class LoginViewController: UIViewController {
         googleButton.snp.makeConstraints { make in
             make.height.equalToSuperview()
         }
-        appleButton.snp.makeConstraints { make in
+        gitHubButton.snp.makeConstraints { make in
             make.height.equalToSuperview()
         }
         stackView3.snp.makeConstraints { make in
@@ -316,7 +340,8 @@ class LoginViewController: UIViewController {
                     self?.present(mealViewController,
                                   animated: true)
                 case .failure(let failure):
-                    self?.showAlert(message: failure.localizedDescription)
+                    print(failure.localizedDescription)
+                    self?.showAlert(message: "Please fill the areas correctly.")
                 }
             }
         }
@@ -335,6 +360,48 @@ class LoginViewController: UIViewController {
         let imageName = passwordTextField.isSecureTextEntry ? "eye.slash" : "eye"
         toggleEyeButton.setImage(UIImage(systemName: imageName),
                                  for: .normal)
+    }
+    
+    @objc func SignInWithGoogle(_ sender: UIButton){
+        loginViewModel.loginWithGoogle(presenting: self) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let userModel):
+                    let mealViewModel = MealViewModel(user: userModel)
+                    let mealViewController = MealViewController(mealViewModel: mealViewModel)
+                    mealViewController.modalPresentationStyle = .fullScreen
+                    mealViewController.isModalInPresentation = true
+                    self?.present(mealViewController,
+                                  animated: true)
+                case .failure(let failure):
+                    print(failure.localizedDescription)
+                    self?.showAlert(message: "Please fill the areas.")
+                }
+            }
+        }
+    }
+    
+    @objc func dismissKeyboard(){
+        view.endEditing(true)
+    }
+    
+    @objc func SignInWithGitHub(_ sender: UIButton){
+        loginViewModel.loginWithGitHub { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let userModel):
+                    let mealViewModel = MealViewModel(user: userModel)
+                    let mealViewController = MealViewController(mealViewModel: mealViewModel)
+                    mealViewController.modalPresentationStyle = .fullScreen
+                    mealViewController.isModalInPresentation = true
+                    self?.present(mealViewController,
+                                  animated: true)
+                case .failure(let failure):
+                    print(failure.localizedDescription)
+                    self?.showAlert(message: "Please fill the areas.")
+                }
+            }
+        }
     }
 }
 

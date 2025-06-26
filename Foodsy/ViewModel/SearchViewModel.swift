@@ -99,6 +99,8 @@ class SearchViewModel {
             guard let self = self else { return }
             if success {
                 self.favoriteMeals.append(meal)
+            }else{
+                print("eklenemedi")
             }
             DispatchQueue.main.async {
                 self.onDataUpdated?()

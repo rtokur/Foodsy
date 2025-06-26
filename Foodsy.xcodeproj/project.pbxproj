@@ -10,6 +10,8 @@
 		0B51F5392DCB7C4F0005A4D9 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0B51F5382DCB7C4F0005A4D9 /* SnapKit */; };
 		0B51F5762DCD135A0005A4D9 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 0B51F5752DCD135A0005A4D9 /* Kingfisher */; };
 		0BA7238C2DDBBC6C002F7620 /* SkyFloatingLabelTextField in Frameworks */ = {isa = PBXBuildFile; productRef = 0BA7238B2DDBBC6C002F7620 /* SkyFloatingLabelTextField */; };
+		0BF1BD6F2E08660E00E57CB6 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 0BF1BD6E2E08660E00E57CB6 /* GoogleSignIn */; };
+		0BF1BD712E08660E00E57CB6 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 0BF1BD702E08660E00E57CB6 /* GoogleSignInSwift */; };
 		0BFA118C2DD94C90005C8929 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 0BFA118B2DD94C90005C8929 /* FirebaseAuth */; };
 		0BFA118E2DD94C90005C8929 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 0BFA118D2DD94C90005C8929 /* FirebaseDatabase */; };
 		0BFA11902DD94C90005C8929 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 0BFA118F2DD94C90005C8929 /* FirebaseFirestore */; };
@@ -46,7 +48,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0BF1BD712E08660E00E57CB6 /* GoogleSignInSwift in Frameworks */,
 				0B51F5762DCD135A0005A4D9 /* Kingfisher in Frameworks */,
+				0BF1BD6F2E08660E00E57CB6 /* GoogleSignIn in Frameworks */,
 				0BFA118C2DD94C90005C8929 /* FirebaseAuth in Frameworks */,
 				0BA7238C2DDBBC6C002F7620 /* SkyFloatingLabelTextField in Frameworks */,
 				0BFA118E2DD94C90005C8929 /* FirebaseDatabase in Frameworks */,
@@ -102,6 +106,8 @@
 				0BFA118F2DD94C90005C8929 /* FirebaseFirestore */,
 				0BFA11912DD94C90005C8929 /* FirebaseStorage */,
 				0BA7238B2DDBBC6C002F7620 /* SkyFloatingLabelTextField */,
+				0BF1BD6E2E08660E00E57CB6 /* GoogleSignIn */,
+				0BF1BD702E08660E00E57CB6 /* GoogleSignInSwift */,
 			);
 			productName = Foodsy;
 			productReference = 0B51F4F22DCB7A5B0005A4D9 /* Foodsy.app */;
@@ -136,6 +142,7 @@
 				0B51F5742DCD135A0005A4D9 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				0BFA118A2DD94C90005C8929 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				0BA7238A2DDBBC6C002F7620 /* XCRemoteSwiftPackageReference "SkyFloatingLabelTextField" */,
+				0BF1BD6D2E08660E00E57CB6 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 0B51F4F32DCB7A5B0005A4D9 /* Products */;
@@ -182,6 +189,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -209,6 +217,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -389,6 +398,14 @@
 				minimumVersion = 4.0.0;
 			};
 		};
+		0BF1BD6D2E08660E00E57CB6 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 		0BFA118A2DD94C90005C8929 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -414,6 +431,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 0BA7238A2DDBBC6C002F7620 /* XCRemoteSwiftPackageReference "SkyFloatingLabelTextField" */;
 			productName = SkyFloatingLabelTextField;
+		};
+		0BF1BD6E2E08660E00E57CB6 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0BF1BD6D2E08660E00E57CB6 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		0BF1BD702E08660E00E57CB6 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0BF1BD6D2E08660E00E57CB6 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
 		};
 		0BFA118B2DD94C90005C8929 /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
