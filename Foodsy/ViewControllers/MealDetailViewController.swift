@@ -7,7 +7,7 @@
 
 import UIKit
 
-class MealDetailViewController: UIViewController {
+class MealDetailViewController: UIViewController, UIGestureRecognizerDelegate {
     //MARK: - Properties
     var mealDetailViewModel: MealDetailViewModel
     var onFavoriteUpdated: (() -> Void)?
@@ -22,6 +22,13 @@ class MealDetailViewController: UIViewController {
     }
     
     //MARK: - UI Elements
+    private let activityIndicator: UIActivityIndicatorView = {
+        let activityIndicator = UIActivityIndicatorView(style: .large)
+        activityIndicator.hidesWhenStopped = true
+        activityIndicator.color = .gray
+        return activityIndicator
+    }()
+    
     private let mealImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
@@ -196,19 +203,12 @@ class MealDetailViewController: UIViewController {
         
         setupViews()
         setupConstraints()
-        
-        mealDetailViewModel.onDataUpdated = { [weak self] in
-            DispatchQueue.main.async {
-                self?.updateUI()
-            }
-        }
-        mealDetailViewModel.loadFavorites { [weak self] in
-            guard let self = self, let meal = mealDetailViewModel.meal else { return }
-            let isFavorite = self.mealDetailViewModel.isFavorite(meal)
-            self.setFavoriteState(isFavorite: isFavorite)
-        }
+
+        configureViewModel()
         
         updateUI()
+        
+        activityIndicator.stopAnimating()
     }
     
     override func viewDidLayoutSubviews() {
@@ -220,7 +220,6 @@ class MealDetailViewController: UIViewController {
     //MARK: - Setup Methods
     func setupViews(){
         view.backgroundColor = .white
-        
         view.addSubview(mealImageView)
         view.addSubview(gradientView)
         setupGradient()
@@ -238,9 +237,16 @@ class MealDetailViewController: UIViewController {
         stackView2.addArrangedSubview(instructionButton)
         stackView1.addArrangedSubview(textView)
         textView.addSubview(textLabel)
+        self.navigationController?.interactivePopGestureRecognizer?.delegate = self
+        view.addSubview(activityIndicator)
+        activityIndicator.startAnimating()
     }
     
     func setupConstraints(){
+        activityIndicator.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+            make.height.width.equalToSuperview()
+        }
         mealImageView.snp.makeConstraints { make in
             make.top.leading.trailing.equalToSuperview()
             make.height.equalTo(300)
@@ -305,6 +311,19 @@ class MealDetailViewController: UIViewController {
     }
     
     //MARK: - Functions
+    func configureViewModel(){
+        mealDetailViewModel.onDataUpdated = { [weak self] in
+            DispatchQueue.main.async {
+                self?.updateUI()
+            }
+        }
+        mealDetailViewModel.loadFavorites { [weak self] in
+            guard let self = self, let meal = mealDetailViewModel.meal else { return }
+            let isFavorite = self.mealDetailViewModel.isFavorite(meal)
+            self.setFavoriteState(isFavorite: isFavorite)
+        }
+    }
+    
     func setupGradient(){
         gradientLayer.colors = [UIColor.white.withAlphaComponent(0.8).cgColor,
                                 UIColor.clear.cgColor]
@@ -335,9 +354,20 @@ class MealDetailViewController: UIViewController {
                                 for: .normal)
     }
     
+    func animateFavoriteButton() {
+        let animation = CABasicAnimation(keyPath: "transform.scale")
+        animation.fromValue = 1.0
+        animation.toValue = 1.3
+        animation.duration = 0.1
+        animation.autoreverses = true
+        animation.repeatCount = 1
+
+        favoriteButton.layer.add(animation, forKey: "bounce")
+    }
+    
     //MARK: - Actions
     @objc func backButtonAction(_ sender: UIButton){
-        dismiss(animated: true)
+        self.navigationController?.popViewController(animated: true)
     }
 
     @objc func buttonTapped(_ sender: UIButton){
@@ -375,6 +405,7 @@ class MealDetailViewController: UIViewController {
             let updatedIsFavorite = self.mealDetailViewModel.isFavorite(meal)
             setFavoriteState(isFavorite: updatedIsFavorite)
             self.onFavoriteUpdated?()
+            animateFavoriteButton()
         }
     }
 }

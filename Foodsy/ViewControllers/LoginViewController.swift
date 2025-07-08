@@ -9,11 +9,18 @@ import UIKit
 import SkyFloatingLabelTextField
 import GoogleSignIn
 
-class LoginViewController: UIViewController {
+class LoginViewController: UIViewController, UIGestureRecognizerDelegate {
     //MARK: - Properties
     private let loginViewModel = LoginViewModel()
     
     //MARK: - UI Elements
+    private let activityIndicator: UIActivityIndicatorView = {
+        let activityIndicator = UIActivityIndicatorView(style: .large)
+        activityIndicator.hidesWhenStopped = true
+        activityIndicator.color = .gray
+        return activityIndicator
+    }()
+    
     private let scrollView: UIScrollView = {
         let scrollView = UIScrollView()
         scrollView.backgroundColor = UIColor(named: Constant.lightGray)
@@ -162,7 +169,7 @@ class LoginViewController: UIViewController {
         button.layer.borderWidth = 1
         button.layer.cornerRadius = 25
         button.addTarget(self,
-                         action: #selector(SignInWithGoogle),
+                         action: #selector(SignInWithGoogle(_:)),
                          for: .touchUpInside)
         return button
     }()
@@ -180,7 +187,7 @@ class LoginViewController: UIViewController {
         button.layer.borderWidth = 1
         button.layer.cornerRadius = 25
         button.addTarget(self,
-                         action: #selector(SignInWithGitHub),
+                         action: #selector(SignInWithGitHub(_:)),
                          for: .touchUpInside)
         return button
     }()
@@ -250,14 +257,20 @@ class LoginViewController: UIViewController {
         stackView.addArrangedSubview(stackView3)
         stackView3.addArrangedSubview(dontHaveAccountLabel)
         stackView3.addArrangedSubview(signUpButton)
+        self.navigationController?.interactivePopGestureRecognizer?.delegate = self
+        view.addSubview(activityIndicator)
     }
     
     func setupConstraints(){
+        activityIndicator.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+            make.height.width.equalToSuperview()
+        }
         scrollView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
         colorView.snp.makeConstraints { make in
-            make.top.equalToSuperview()
+            make.top.equalTo(view)
             make.width.equalToSuperview()
             make.height.equalTo(420)
         }
@@ -322,9 +335,11 @@ class LoginViewController: UIViewController {
     
     //MARK: - Actions
     @objc func signInButtonAction(_ sender: UIButton){
+        activityIndicator.startAnimating()
         guard let email = emailTextField.text,
               let password = passwordTextField.text else {
             showAlert(message: "Please fill all fields.")
+            activityIndicator.stopAnimating()
             return
         }
         
@@ -333,15 +348,17 @@ class LoginViewController: UIViewController {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let userModel):
+                    self?.activityIndicator.stopAnimating()
                     let mealViewModel = MealViewModel(user: userModel)
                     let mealViewController = MealViewController(mealViewModel: mealViewModel)
-                    mealViewController.modalPresentationStyle = .fullScreen
-                    mealViewController.isModalInPresentation = true
-                    self?.present(mealViewController,
-                                  animated: true)
+                    self?.navigationController?.pushViewController(mealViewController,
+                                                                   animated: true)
+                    
                 case .failure(let failure):
                     print(failure.localizedDescription)
+                    self?.activityIndicator.stopAnimating()
                     self?.showAlert(message: "Please fill the areas correctly.")
+
                 }
             }
         }
@@ -349,9 +366,8 @@ class LoginViewController: UIViewController {
     
     @objc func signUpButtonAction(_ sender: UIButton){
         let signUpViewController = SignUpViewController()
-        signUpViewController.modalPresentationStyle = .fullScreen
-        signUpViewController.isModalInPresentation = true
-        present(signUpViewController, animated: true)
+        self.navigationController?.pushViewController(signUpViewController,
+                                                      animated: true)
     }
     
     @objc func toogleEyeButtonAction(_ sender: UIButton) {
@@ -363,18 +379,19 @@ class LoginViewController: UIViewController {
     }
     
     @objc func SignInWithGoogle(_ sender: UIButton){
+        activityIndicator.startAnimating()
         loginViewModel.loginWithGoogle(presenting: self) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let userModel):
+                    self?.activityIndicator.stopAnimating()
                     let mealViewModel = MealViewModel(user: userModel)
                     let mealViewController = MealViewController(mealViewModel: mealViewModel)
-                    mealViewController.modalPresentationStyle = .fullScreen
-                    mealViewController.isModalInPresentation = true
-                    self?.present(mealViewController,
-                                  animated: true)
+                    self?.navigationController?.pushViewController(mealViewController,
+                                                                   animated: true)
                 case .failure(let failure):
                     print(failure.localizedDescription)
+                    self?.activityIndicator.stopAnimating()
                     self?.showAlert(message: "Please fill the areas.")
                 }
             }
@@ -386,18 +403,19 @@ class LoginViewController: UIViewController {
     }
     
     @objc func SignInWithGitHub(_ sender: UIButton){
-        loginViewModel.loginWithGitHub { [weak self] result in
+        activityIndicator.startAnimating()
+        loginViewModel.loginWithGitHub(presentingViewController: self) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let userModel):
+                    self?.activityIndicator.stopAnimating()
                     let mealViewModel = MealViewModel(user: userModel)
                     let mealViewController = MealViewController(mealViewModel: mealViewModel)
-                    mealViewController.modalPresentationStyle = .fullScreen
-                    mealViewController.isModalInPresentation = true
-                    self?.present(mealViewController,
-                                  animated: true)
+                    self?.navigationController?.pushViewController(mealViewController,
+                                                                   animated: true)
                 case .failure(let failure):
                     print(failure.localizedDescription)
+                    self?.activityIndicator.stopAnimating()
                     self?.showAlert(message: "Please fill the areas.")
                 }
             }

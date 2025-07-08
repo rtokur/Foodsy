@@ -7,7 +7,7 @@
 
 import UIKit
 
-class CategoryViewController: UIViewController {
+class CategoryViewController: UIViewController, UIGestureRecognizerDelegate {
     //MARK: - Properties
     var categoryViewModel: CategoryViewModel
     private var categories: [Category] = []
@@ -21,6 +21,13 @@ class CategoryViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     //MARK: - UI Elements
+    private let activityIndicator: UIActivityIndicatorView = {
+        let activityIndicator = UIActivityIndicatorView(style: .large)
+        activityIndicator.hidesWhenStopped = true
+        activityIndicator.color = .gray
+        return activityIndicator
+    }()
+    
     private let stackView2: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -85,19 +92,9 @@ class CategoryViewController: UIViewController {
         setupViews()
         setupConstraints()
         
-        categoryViewModel.loadFavorites { [weak self] in
-            self?.categoryViewModel.fetchMealsForSelectedCategory()
-        }
-        categoryViewModel.onDataUpdated = { [weak self] in
-            guard let self = self else { return }
-            self.mealCategoryCollectionView.reloadData()
-            self.mealCategoryCollectionView.snp.updateConstraints { make in
-                make.height.equalTo(self.mealCategoryCollectionView.collectionViewLayout.collectionViewContentSize.height)
-            }
-            self.addCategoryButtons()
-            
-        }
-        categoryViewModel.fetchCategories()
+        configureViewModel()
+        
+        activityIndicator.stopAnimating()
     }
 
     //MARK: - Setup Methods
@@ -113,9 +110,17 @@ class CategoryViewController: UIViewController {
         mealCategoryCollectionView.dataSource = self
         mealCategoryCollectionView.register(MealCategoryBestRecipeCollectionViewCell.self,
                                             forCellWithReuseIdentifier: "MealCategoryBestRecipeCollectionViewCell")
+        self.navigationController?.interactivePopGestureRecognizer?.delegate = self
+        
+        view.addSubview(activityIndicator)
+        activityIndicator.startAnimating()
     }
     
     func setupConstraints(){
+        activityIndicator.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+            make.height.width.equalToSuperview()
+        }
         stackView2.snp.makeConstraints { make in
             make.height.equalTo(50)
             make.leading.top.equalTo(view.safeAreaLayoutGuide)
@@ -142,6 +147,23 @@ class CategoryViewController: UIViewController {
             make.leading.trailing.equalToSuperview().inset(20)
             make.bottom.lessThanOrEqualToSuperview().inset(20)
         }
+    }
+    
+    //MARK: - Functions
+    func configureViewModel(){
+        categoryViewModel.loadFavorites { [weak self] in
+            self?.categoryViewModel.fetchMealsForSelectedCategory()
+        }
+        categoryViewModel.onDataUpdated = { [weak self] in
+            guard let self = self else { return }
+            self.mealCategoryCollectionView.reloadData()
+            self.mealCategoryCollectionView.snp.updateConstraints { make in
+                make.height.equalTo(self.mealCategoryCollectionView.collectionViewLayout.collectionViewContentSize.height)
+            }
+            self.addCategoryButtons()
+            
+        }
+        categoryViewModel.fetchCategories()
     }
     
     func addCategoryButtons(){
@@ -195,7 +217,7 @@ class CategoryViewController: UIViewController {
     
     //MARK: - Actions
     @objc func backButtonTapped(_ sender: UIButton){
-        dismiss(animated: true)
+        self.navigationController?.popViewController(animated: true)
     }
     
     @objc func categoryButtonTapped(_ sender: UIButton){
@@ -250,10 +272,8 @@ extension CategoryViewController: UICollectionViewDelegate,
                 }
             }
         }
-        mealDetailViewController.isModalInPresentation = true
-        mealDetailViewController.modalPresentationStyle = .fullScreen
-        self.present(mealDetailViewController, animated: true)
-        
+        self.navigationController?.pushViewController(mealDetailViewController,
+                                                      animated: true)
     }
     
 }

@@ -8,11 +8,18 @@
 import UIKit
 import SkyFloatingLabelTextField
 
-class SignUpViewController: UIViewController {
+class SignUpViewController: UIViewController, UIGestureRecognizerDelegate {
     //MARK: - Properties
     private let signUpViewModel = SignUpViewModel()
     
     //MARK: - UI Elements
+    private let activityIndicator: UIActivityIndicatorView = {
+        let activityIndicator = UIActivityIndicatorView(style: .large)
+        activityIndicator.hidesWhenStopped = true
+        activityIndicator.color = .gray
+        return activityIndicator
+    }()
+    
     private let scrollView: UIScrollView = {
         let scrollView = UIScrollView()
         scrollView.showsVerticalScrollIndicator = false
@@ -210,10 +217,12 @@ class SignUpViewController: UIViewController {
         super.viewDidLoad()
         setupViews()
         setupConstraints()
+        activityIndicator.stopAnimating()
     }
 
     //MARK: - Setup Methods
     func setupViews(){
+        self.navigationController?.interactivePopGestureRecognizer?.delegate = self
         view.addSubview(scrollView)
         scrollView.addSubview(colorView)
         scrollView.addSubview(reflectionView)
@@ -238,9 +247,15 @@ class SignUpViewController: UIViewController {
         stackView.addArrangedSubview(stackView3)
         stackView3.addArrangedSubview(doHaveAccountLabel)
         stackView3.addArrangedSubview(signInButton)
+        view.addSubview(activityIndicator)
+        activityIndicator.startAnimating()
     }
     
     func setupConstraints(){
+        activityIndicator.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+            make.height.width.equalToSuperview()
+        }
         scrollView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
@@ -321,11 +336,14 @@ class SignUpViewController: UIViewController {
     }
     
     @objc func signUpButtonAction(_ sender: UIButton){
+        activityIndicator.startAnimating()
         guard let email = emailTextField.text,
               let password = passwordTextField.text,
               password == confirmPasswordTextField.text,
               let name = nameTextField.text else {
+            activityIndicator.stopAnimating()
             showAlert(message: "Please fill in all fields correctly.")
+            
             return
         }
         
@@ -335,14 +353,14 @@ class SignUpViewController: UIViewController {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let userModel):
+                    self?.activityIndicator.stopAnimating()
                     let mealViewModel = MealViewModel(user: userModel)
                     let mealViewController = MealViewController(mealViewModel: mealViewModel)
-                    mealViewController.modalPresentationStyle = .fullScreen
-                    mealViewController.isModalInPresentation = true
-                    self?.present(mealViewController,
-                                  animated: true)
+                    self?.navigationController?.pushViewController(mealViewController,
+                                                                   animated: true)
                 case .failure(let failure):
                     print(failure.localizedDescription)
+                    self?.activityIndicator.stopAnimating()
                     self?.showAlert(message: "Please fill the areas correctly.")
                 }
             }
@@ -350,7 +368,7 @@ class SignUpViewController: UIViewController {
     }
     
     @objc func signInButtonAction(_ sender: UIButton){
-        dismiss(animated: true)
+        self.navigationController?.popViewController(animated: true)
     }
     
     @objc func dismissKeyboard(){

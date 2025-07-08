@@ -53,13 +53,20 @@ class LoginViewModel {
         }
     }
     
-    func loginWithGitHub(completion: @escaping (Result<UserModel,
+    func loginWithGitHub(presentingViewController: UIViewController,
+                         completion: @escaping (Result<UserModel,
                                                 AuthError>) -> Void) {
         let provider = OAuthProvider(providerID: "github.com")
-        
+        provider.scopes = ["user:email"]
+        provider.customParameters = ["allow_signup": "false"]
+        print("çalıştı2")
+
         provider.getCredentialWith(nil) { credential, error in
-            if let error = error {
-                completion(.failure(.dataFetchFailed("Github login failed: \(error.localizedDescription)")))
+            print("GitHub login callback geldi")
+
+            if error != nil {
+                completion(.failure(.dataFetchFailed("Github login failed: \(error?.localizedDescription)")))
+                print("GitHub credential error: \(error?.localizedDescription)")
                 return
             }
             

@@ -128,6 +128,17 @@ class FavoriteCollectionViewCell: UICollectionViewCell {
                                 for: .normal)
     }
     
+    func animateFavoriteButton() {
+        let animation = CABasicAnimation(keyPath: "transform.scale")
+        animation.fromValue = 1.0
+        animation.toValue = 1.3
+        animation.duration = 0.1
+        animation.autoreverses = true
+        animation.repeatCount = 1
+
+        favoriteButton.layer.add(animation, forKey: "bounce")
+    }
+    
     func configure(with meal: Meal,
                    isFavorite: Bool){
         if let url = meal.mealUrl,
@@ -141,8 +152,7 @@ class FavoriteCollectionViewCell: UICollectionViewCell {
     //MARK: - Actions
     @objc private func favoriteButtonTapped() {
         delegate?.didTapFavorite(on: self)
+        animateFavoriteButton()
     }
-    
-    
     
 }

@@ -7,7 +7,7 @@
 
 import UIKit
 
-class SearchViewController: UIViewController {
+class SearchViewController: UIViewController, UIGestureRecognizerDelegate {
     //MARK: - Properties
     var searchViewModel: SearchViewModel
     
@@ -21,6 +21,13 @@ class SearchViewController: UIViewController {
     }
     
     //MARK: - UI Elements
+    private let activityIndicator: UIActivityIndicatorView = {
+        let activityIndicator = UIActivityIndicatorView(style: .large)
+        activityIndicator.hidesWhenStopped = true
+        activityIndicator.color = .gray
+        return activityIndicator
+    }()
+    
     private let stackView1: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -93,24 +100,14 @@ class SearchViewController: UIViewController {
         
         setupConstraints()
         
-        searchViewModel.loadFavorites { [weak self] in
-            guard let text = self?.searchBar.text else { return }
-            self?.searchViewModel.search(with: text)
-        }
+        configureViewModel()
         
-        searchViewModel.onDataUpdated = { [weak self] in
-            guard let self = self else { return }
-            self.searchCategoryCollectionView.reloadData()
-            self.searchCategoryCollectionView.snp.updateConstraints { make in
-                make.height.equalTo(self.searchCategoryCollectionView.collectionViewLayout.collectionViewContentSize.height)
-            }
-            self.noResultLabel.isHidden = !self.searchViewModel.isResultEmpty()
-        }
-        
+        activityIndicator.stopAnimating()
     }
 
     //MARK: - Setup Methods
     func setupViews(){
+        self.navigationController?.interactivePopGestureRecognizer?.delegate = self
         view.backgroundColor = .white
         view.addSubview(stackView1)
         stackView1.addArrangedSubview(backButton)
@@ -122,9 +119,15 @@ class SearchViewController: UIViewController {
         searchCategoryCollectionView.register(SearchCollectionViewCell.self,
                                               forCellWithReuseIdentifier: "SearchCollectionViewCell")
         view.addSubview(noResultLabel)
+        view.addSubview(activityIndicator)
+        activityIndicator.startAnimating()
     }
     
     func setupConstraints(){
+        activityIndicator.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+            make.height.width.equalToSuperview()
+        }
         stackView1.snp.makeConstraints { make in
             make.top.leading.equalTo(view.safeAreaLayoutGuide)
             make.height.equalTo(70)
@@ -148,9 +151,26 @@ class SearchViewController: UIViewController {
         }
     }
     
+    //MARK: - Functions
+    func configureViewModel(){
+        searchViewModel.loadFavorites { [weak self] in
+            guard let text = self?.searchBar.text else { return }
+            self?.searchViewModel.search(with: text)
+        }
+        
+        searchViewModel.onDataUpdated = { [weak self] in
+            guard let self = self else { return }
+            self.searchCategoryCollectionView.reloadData()
+            self.searchCategoryCollectionView.snp.updateConstraints { make in
+                make.height.equalTo(self.searchCategoryCollectionView.collectionViewLayout.collectionViewContentSize.height)
+            }
+            self.noResultLabel.isHidden = !self.searchViewModel.isResultEmpty()
+        }
+    }
+    
     //MARK: - Actions
     @objc func backButtonAction(_ sender: UIButton){
-        dismiss(animated: true)
+        self.navigationController?.popViewController(animated: true)
     }
 }
 
@@ -188,10 +208,8 @@ extension SearchViewController: UICollectionViewDelegate,
                 }
             }
         }
-        mealDetailViewController.modalPresentationStyle = .fullScreen
-        mealDetailViewController.isModalInPresentation = true
-        present(mealDetailViewController,
-                animated: true)
+        self.navigationController?.pushViewController(mealDetailViewController,
+                                                      animated: true)
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {

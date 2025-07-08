@@ -7,7 +7,7 @@
 
 import UIKit
 
-class BestRecipeViewController: UIViewController {
+class BestRecipeViewController: UIViewController, UIGestureRecognizerDelegate {
     //MARK: - Properties
     var bestRecipeViewModel: MealViewModel
     
@@ -21,6 +21,13 @@ class BestRecipeViewController: UIViewController {
     }
     
     //MARK: - UI Elements
+    private let activityIndicator: UIActivityIndicatorView = {
+        let activityIndicator = UIActivityIndicatorView(style: .large)
+        activityIndicator.hidesWhenStopped = true
+        activityIndicator.color = .gray
+        return activityIndicator
+    }()
+    
     private let stackView1: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -65,7 +72,8 @@ class BestRecipeViewController: UIViewController {
         super.viewDidLoad()
         setupViews()
         setupConstraints()
-        // Do any additional setup after loading the view.
+        
+        activityIndicator.stopAnimating()
     }
     
     override func viewDidLayoutSubviews() {
@@ -86,9 +94,17 @@ class BestRecipeViewController: UIViewController {
         bestRecipeCategoryCollectionView.dataSource = self
         bestRecipeCategoryCollectionView.register(MealCategoryBestRecipeCollectionViewCell.self,
                                             forCellWithReuseIdentifier: "MealCategoryBestRecipeCollectionViewCell")
+        self.navigationController?.interactivePopGestureRecognizer?.delegate = self
+        
+        view.addSubview(activityIndicator)
+        activityIndicator.startAnimating()
     }
     
     func setupConstraints(){
+        activityIndicator.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+            make.height.width.equalToSuperview()
+        }
         stackView1.snp.makeConstraints { make in
             make.height.equalTo(50)
             make.leading.top.equalTo(view.safeAreaLayoutGuide)
@@ -110,7 +126,7 @@ class BestRecipeViewController: UIViewController {
     
     //MARK: - Actions
     @objc func backButtonTapped(_ sender: UIButton){
-        dismiss(animated: true)
+        self.navigationController?.popViewController(animated: true)
     }
 
 }
@@ -145,10 +161,8 @@ extension BestRecipeViewController: UICollectionViewDelegate,
                 }
             }
         }
-        mealDetailViewController.modalPresentationStyle = .fullScreen
-        mealDetailViewController.isModalInPresentation = true
-        present(mealDetailViewController,
-                animated: true)
+        self.navigationController?.pushViewController(mealDetailViewController,
+                                                      animated: true)
     }
     
 }

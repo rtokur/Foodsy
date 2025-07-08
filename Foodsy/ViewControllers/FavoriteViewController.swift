@@ -7,7 +7,7 @@
 
 import UIKit
 
-class FavoriteViewController: UIViewController {
+class FavoriteViewController: UIViewController, UIGestureRecognizerDelegate {
     //MARK: - Properties
     var favoriteViewModel: FavoriteViewModel
     
@@ -23,6 +23,13 @@ class FavoriteViewController: UIViewController {
     private let categories: [Category] = []
     
     //MARK: - UI Elements
+    private let activityIndicator: UIActivityIndicatorView = {
+        let activityIndicator = UIActivityIndicatorView(style: .large)
+        activityIndicator.hidesWhenStopped = true
+        activityIndicator.color = .gray
+        return activityIndicator
+    }()
+    
     private let stackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -63,26 +70,21 @@ class FavoriteViewController: UIViewController {
         return collectionView
     }()
     
+    //MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
 
         setupViews()
         setupConstraints()
 
-        favoriteViewModel.onDataUpdated = { [weak self] in
-            guard let self = self else { return }
-            DispatchQueue.main.async {
-                self.favoriteCollectionView.reloadData()
-                self.favoriteCollectionView.snp.updateConstraints { make in
-                    make.height.equalTo(self.favoriteCollectionView.collectionViewLayout.collectionViewContentSize.height)
-                }
-            }
-        }
-        favoriteViewModel.loadFavorites {}
+        configureViewModel()
+        
+        activityIndicator.stopAnimating()
     }
 
     //MARK: - Setup Methods
     func setupViews(){
+        self.navigationController?.interactivePopGestureRecognizer?.delegate = self
         view.backgroundColor = .white
         view.addSubview(stackView)
         stackView.addArrangedSubview(backButton)
@@ -92,9 +94,15 @@ class FavoriteViewController: UIViewController {
         favoriteCollectionView.dataSource = self
         favoriteCollectionView.register(FavoriteCollectionViewCell.self,
                                         forCellWithReuseIdentifier: "FavoriteCollectionViewCell")
+        view.addSubview(activityIndicator)
+        activityIndicator.startAnimating()
     }
     
     func setupConstraints(){
+        activityIndicator.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+            make.height.width.equalToSuperview()
+        }
         stackView.snp.makeConstraints { make in
             make.height.equalTo(50)
             make.leading.top.equalTo(view.safeAreaLayoutGuide)
@@ -114,9 +122,23 @@ class FavoriteViewController: UIViewController {
         }
     }
     
+    //MARK: - Functions
+    func configureViewModel(){
+        favoriteViewModel.onDataUpdated = { [weak self] in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                self.favoriteCollectionView.reloadData()
+                self.favoriteCollectionView.snp.updateConstraints { make in
+                    make.height.equalTo(self.favoriteCollectionView.collectionViewLayout.collectionViewContentSize.height)
+                }
+            }
+        }
+        favoriteViewModel.loadFavorites {}
+    }
+    
     //MARK: - Actions
     @objc func backButtonTapped(_ sender: UIButton){
-        dismiss(animated: true)
+        self.navigationController?.popViewController(animated: true)
     }
 }
 
@@ -154,10 +176,8 @@ extension FavoriteViewController: UICollectionViewDelegate,
                 }
             }
         }
-        mealDetailViewController.isModalInPresentation = true
-        mealDetailViewController.modalPresentationStyle = .fullScreen
-        self.present(mealDetailViewController,
-                     animated: true)
+        self.navigationController?.pushViewController(mealDetailViewController,
+                                                      animated: true)
         
     }
     

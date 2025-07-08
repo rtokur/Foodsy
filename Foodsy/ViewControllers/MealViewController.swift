@@ -9,7 +9,7 @@ import UIKit
 import SnapKit
 import Kingfisher
 
-class MealViewController: UIViewController {
+class MealViewController: UIViewController, UIGestureRecognizerDelegate {
     
     //MARK: - Properties
     var mealViewModel: MealViewModel
@@ -24,6 +24,13 @@ class MealViewController: UIViewController {
     }
     
     //MARK: - UI Elements
+    private let activityIndicator: UIActivityIndicatorView = {
+        let activityIndicator = UIActivityIndicatorView(style: .large)
+        activityIndicator.hidesWhenStopped = true
+        activityIndicator.color = .gray
+        return activityIndicator
+    }()
+    
     private let stackView2: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -207,34 +214,11 @@ class MealViewController: UIViewController {
         
         setupConstraints()
         
-        mealViewModel.loadFavorites { [weak self] in
-            self?.mealViewModel.loadMeals()
-        }
-        mealViewModel.onDataUpdated = { [weak self] in
-            guard let self = self else { return }
-            self.mealCollectionView.reloadData()
-            self.categoryCollectionView.reloadData()
-            self.userNameButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: mealViewModel.userName,
-                                                                                                    attributes: [.font: UIFont.boldSystemFont(ofSize: 20),
-                                                                                                                 .foregroundColor: UIColor.black]))
-        }
-        mealViewModel.onLogout = { [weak self] in
-            guard let self = self else { return }
-            let loginViewController = LoginViewController()
-            loginViewController.modalPresentationStyle = .fullScreen
-            loginViewController.isModalInPresentation = true
-            self.present(loginViewController,
-                          animated: true)
-            
-        }
+        configureViewModel()
         
-        mealViewModel.onLogoutError = { [weak self] message in
-            guard let self = self else { return }
-            self.showAlert(message: message)
-        }
-        
-        mealViewModel.loadCategories()
         configureMenu()
+        
+        activityIndicator.stopAnimating()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -286,9 +270,17 @@ class MealViewController: UIViewController {
         mealCollectionView.dataSource = self
         mealCollectionView.register(MealCollectionViewCell.self,
                                     forCellWithReuseIdentifier: "MealCollectionViewCell")
+        self.navigationController?.interactivePopGestureRecognizer?.delegate = self
+        
+        view.addSubview(activityIndicator)
+        activityIndicator.startAnimating()
     }
     
     func setupConstraints(){
+        activityIndicator.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+            make.height.width.equalToSuperview()
+        }
         stackView2.snp.makeConstraints { make in
             make.height.equalTo(50)
             make.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(20)
@@ -349,15 +341,44 @@ class MealViewController: UIViewController {
     }
     
     //MARK: - Functions
+    private func configureViewModel(){
+        mealViewModel.loadFavorites { [weak self] in
+            self?.mealViewModel.loadMeals()
+        }
+        mealViewModel.onDataUpdated = { [weak self] in
+            guard let self = self else { return }
+            self.mealCollectionView.reloadData()
+            self.categoryCollectionView.reloadData()
+            self.userNameButton.configuration?.attributedTitle = AttributedString(NSAttributedString(string: mealViewModel.userName,
+                                                                                                    attributes: [.font: UIFont.boldSystemFont(ofSize: 20),
+                                                                                                                 .foregroundColor: UIColor.black]))
+        }
+        mealViewModel.onLogout = { [weak self] in
+            guard let self = self else { return }
+            if(self.navigationController?.viewControllers.count != 1){
+                self.navigationController?.popViewController(animated: true)
+            }
+            else{
+                let loginViewController = LoginViewController()
+                self.navigationController?.pushViewController(loginViewController, animated: true)
+            }
+        }
+        
+        mealViewModel.onLogoutError = { [weak self] message in
+            guard let self = self else { return }
+            self.showAlert(message: message)
+        }
+        
+        mealViewModel.loadCategories()
+    }
+    
     func configureMenu(){
         let actionClosure = { [weak self] (action: UIAction) in
             let userModel = self?.mealViewModel.user
             let favoriteViewModel = FavoriteViewModel(user: userModel!)
             let favoriteViewController = FavoriteViewController(favoriteViewModel: favoriteViewModel)
-            favoriteViewController.isModalInPresentation = true
-            favoriteViewController.modalPresentationStyle = .fullScreen
-            self?.present(favoriteViewController,
-                          animated: true)
+            self?.navigationController?.pushViewController(favoriteViewController,
+                                                           animated: true)
         }
         var menuChildren : [UIMenuElement] = []
         menuChildren.append(UIAction(title: "Favorites",
@@ -373,23 +394,24 @@ class MealViewController: UIViewController {
         let categoryViewModel = CategoryViewModel(user: userModel)
         let categoryViewController = CategoryViewController(categoryViewModel: categoryViewModel)
         categoryViewController.categoryViewModel.selectedCategory = "Beef"
-        categoryViewController.modalPresentationStyle = .fullScreen
-        categoryViewController.isModalInPresentation = true
-        present(categoryViewController,
-                animated: true)
+        self.navigationController?.pushViewController(categoryViewController, animated: true)
     }
     
     @objc func goToBestRecipe(_ sender: UIButton){
         let bestRecipeViewModel = self.mealViewModel
         let bestRecipeViewController = BestRecipeViewController(bestRecipeViewModel: bestRecipeViewModel)
-        bestRecipeViewController.modalPresentationStyle = .fullScreen
-        bestRecipeViewController.isModalInPresentation = true
-        present(bestRecipeViewController,
-                animated: true)
+        self.navigationController?.pushViewController(bestRecipeViewController, animated: true)
     }
     
     @objc func logOut(_ sender: UIButton) {
-        mealViewModel.logOut()
+        let alert = UIAlertController(title: "Log out", message: "Are you sure to log out?", preferredStyle: .alert)
+        let action = UIAlertAction(title: "No", style: .cancel)
+        let action2 = UIAlertAction(title: "Yes", style: .default) { [weak self] action in
+            self?.mealViewModel.logOut()
+        }
+        alert.addAction(action)
+        alert.addAction(action2)
+        present(alert, animated: true)
     }
 }
 
@@ -444,20 +466,15 @@ extension MealViewController: UICollectionViewDelegate,
                     }
                 }
             }
-            mealDetailViewController.modalPresentationStyle = .fullScreen
-            mealDetailViewController.isModalInPresentation = true
-            present(mealDetailViewController,
-                    animated: true)
+            self.navigationController?.pushViewController(mealDetailViewController,
+                                                          animated: true)
         }else{
             let category = mealViewModel.category(at: indexPath.row).strCategory ?? ""
             let userModel = self.mealViewModel.user
             let categoryViewModel = CategoryViewModel(user: userModel)
             let categoryViewController = CategoryViewController(categoryViewModel: categoryViewModel)
             categoryViewController.categoryViewModel.selectedCategory = category
-            categoryViewController.modalPresentationStyle = .fullScreen
-            categoryViewController.isModalInPresentation = true
-            present(categoryViewController,
-                    animated: true)
+            self.navigationController?.pushViewController(categoryViewController, animated: true)
         }
     }
     
@@ -467,10 +484,7 @@ extension MealViewController: UICollectionViewDelegate,
         let searchViewModel = SearchViewModel(user: userModel)
         let searchViewController = SearchViewController(searchViewModel: searchViewModel)
         searchViewController.searchBar.text = searchText
-        searchViewController.isModalInPresentation = true
-        searchViewController.modalPresentationStyle = .fullScreen
-        present(searchViewController,
-                animated: true)
+        self.navigationController?.pushViewController(searchViewController, animated: true)
     }
 }
 

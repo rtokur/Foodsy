@@ -22,9 +22,17 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 switch result {
                 case .success(let userModel):
                     let mealViewModel = MealViewModel(user: userModel)
-                    window.rootViewController = MealViewController(mealViewModel: mealViewModel)
+                    let mealViewController = MealViewController(mealViewModel: mealViewModel)
+                    let navigationController = UINavigationController(rootViewController: mealViewController)
+                    navigationController.setNavigationBarHidden(true,
+                                                                animated: false)
+                    window.rootViewController = navigationController
                 case .failure:
-                    window.rootViewController = LoginViewController()
+                    let loginViewController = LoginViewController()
+                    let navigationController = UINavigationController(rootViewController: loginViewController)
+                    navigationController.setNavigationBarHidden(true,
+                                                                animated: false)
+                    window.rootViewController = navigationController
                 }
                 window.makeKeyAndVisible()
             }
