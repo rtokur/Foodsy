@@ -29,3 +29,5 @@ yarn-error.log*
 
 # Firebase config
 GoogleService-Info.plist
+
+Info.plist
