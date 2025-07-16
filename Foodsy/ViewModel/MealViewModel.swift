@@ -13,6 +13,7 @@ class MealViewModel{
     //MARK: - Properties
     private let mealService: MealServiceProtocol
     private let favoriteService: FavoriteServiceProtocol
+    private let authService: AuthManagerProtocol
     var meals: [Meal] = []
     var categories: [Category] = []
     var favoriteMeals: [Meal] = []
@@ -29,10 +30,12 @@ class MealViewModel{
     // MARK: - Init
     init(user: UserModel,
          favoriteService: FavoriteServiceProtocol = FavoriteService(),
-         mealService: MealServiceProtocol = MealService()) {
+         mealService: MealServiceProtocol = MealService(),
+         authService: AuthManagerProtocol = AuthManager.shared) {
         self.user = user
         self.favoriteService = favoriteService
         self.mealService = mealService
+        self.authService = authService
     }
     
     // MARK: - Public Methods
@@ -78,7 +81,7 @@ class MealViewModel{
     }
     
     func logOut() {
-        AuthManager.signOut { [weak self] result in
+        authService.signOut { [weak self] result in
             guard let self = self else { return }
             switch result {
             case .success(let success):

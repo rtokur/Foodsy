@@ -11,7 +11,7 @@ import GoogleSignIn
 
 class LoginViewController: UIViewController, UIGestureRecognizerDelegate {
     //MARK: - Properties
-    private let loginViewModel = LoginViewModel()
+    private let loginViewModel = LoginViewModel(authManager: AuthManager.shared)
     
     //MARK: - UI Elements
     private let activityIndicator: UIActivityIndicatorView = {
@@ -148,14 +148,6 @@ class LoginViewController: UIViewController, UIGestureRecognizerDelegate {
         return label
     }()
     
-    private let stackView2: UIStackView = {
-        let stackView = UIStackView()
-        stackView.axis = .horizontal
-        stackView.spacing = 10
-        stackView.distribution = .fillEqually
-        return stackView
-    }()
-    
     private let googleButton: UIButton = {
         let button = UIButton()
         var configuration = UIButton.Configuration.plain()
@@ -170,24 +162,6 @@ class LoginViewController: UIViewController, UIGestureRecognizerDelegate {
         button.layer.cornerRadius = 25
         button.addTarget(self,
                          action: #selector(SignInWithGoogle(_:)),
-                         for: .touchUpInside)
-        return button
-    }()
-    
-    private let gitHubButton: UIButton = {
-        let button = UIButton()
-        var configuration = UIButton.Configuration.plain()
-        configuration.attributedTitle = AttributedString(NSAttributedString(string: "GitHub",
-                                                                            attributes: Constant.attributesGoogleButton))
-        configuration.image = UIImage(named: "github")
-        configuration.imagePadding = 10
-        button.configuration = configuration
-        button.backgroundColor = .white
-        button.layer.borderColor = UIColor.lightGray.withAlphaComponent(0.5).cgColor
-        button.layer.borderWidth = 1
-        button.layer.cornerRadius = 25
-        button.addTarget(self,
-                         action: #selector(SignInWithGitHub(_:)),
                          for: .touchUpInside)
         return button
     }()
@@ -251,9 +225,7 @@ class LoginViewController: UIViewController, UIGestureRecognizerDelegate {
         passwordTextField.rightViewMode = .always
         stackView.addArrangedSubview(signInButton)
         stackView.addArrangedSubview(orLoginWithLabel)
-        stackView.addArrangedSubview(stackView2)
-        stackView2.addArrangedSubview(googleButton)
-        stackView2.addArrangedSubview(gitHubButton)
+        stackView.addArrangedSubview(googleButton)
         stackView.addArrangedSubview(stackView3)
         stackView3.addArrangedSubview(dontHaveAccountLabel)
         stackView3.addArrangedSubview(signUpButton)
@@ -312,14 +284,8 @@ class LoginViewController: UIViewController, UIGestureRecognizerDelegate {
         orLoginWithLabel.snp.makeConstraints { make in
             make.height.equalTo(15)
         }
-        stackView2.snp.makeConstraints { make in
-            make.width.equalToSuperview()
-        }
         googleButton.snp.makeConstraints { make in
-            make.height.equalToSuperview()
-        }
-        gitHubButton.snp.makeConstraints { make in
-            make.height.equalToSuperview()
+            make.width.equalToSuperview()
         }
         stackView3.snp.makeConstraints { make in
             make.width.equalToSuperview()
@@ -331,6 +297,12 @@ class LoginViewController: UIViewController, UIGestureRecognizerDelegate {
         signUpButton.snp.makeConstraints { make in
             make.width.equalTo(120)
         }
+    }
+    //MARK: - Functions
+    private func navigateToHome(with user: UserModel) {
+        let mealViewModel = MealViewModel(user: user)
+        let mealVC = MealViewController(mealViewModel: mealViewModel)
+        self.navigationController?.pushViewController(mealVC, animated: true)
     }
     
     //MARK: - Actions
@@ -349,10 +321,7 @@ class LoginViewController: UIViewController, UIGestureRecognizerDelegate {
                 switch result {
                 case .success(let userModel):
                     self?.activityIndicator.stopAnimating()
-                    let mealViewModel = MealViewModel(user: userModel)
-                    let mealViewController = MealViewController(mealViewModel: mealViewModel)
-                    self?.navigationController?.pushViewController(mealViewController,
-                                                                   animated: true)
+                    self?.navigateToHome(with: userModel)
                     
                 case .failure(let failure):
                     print(failure.localizedDescription)
@@ -385,10 +354,7 @@ class LoginViewController: UIViewController, UIGestureRecognizerDelegate {
                 switch result {
                 case .success(let userModel):
                     self?.activityIndicator.stopAnimating()
-                    let mealViewModel = MealViewModel(user: userModel)
-                    let mealViewController = MealViewController(mealViewModel: mealViewModel)
-                    self?.navigationController?.pushViewController(mealViewController,
-                                                                   animated: true)
+                    self?.navigateToHome(with: userModel)
                 case .failure(let failure):
                     print(failure.localizedDescription)
                     self?.activityIndicator.stopAnimating()
@@ -400,26 +366,6 @@ class LoginViewController: UIViewController, UIGestureRecognizerDelegate {
     
     @objc func dismissKeyboard(){
         view.endEditing(true)
-    }
-    
-    @objc func SignInWithGitHub(_ sender: UIButton){
-        activityIndicator.startAnimating()
-        loginViewModel.loginWithGitHub(presentingViewController: self) { [weak self] result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let userModel):
-                    self?.activityIndicator.stopAnimating()
-                    let mealViewModel = MealViewModel(user: userModel)
-                    let mealViewController = MealViewController(mealViewModel: mealViewModel)
-                    self?.navigationController?.pushViewController(mealViewController,
-                                                                   animated: true)
-                case .failure(let failure):
-                    print(failure.localizedDescription)
-                    self?.activityIndicator.stopAnimating()
-                    self?.showAlert(message: "Please fill the areas.")
-                }
-            }
-        }
     }
 }
 

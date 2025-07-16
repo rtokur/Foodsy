@@ -9,38 +9,26 @@ import FirebaseAuth
 import FirebaseFirestore
 
 class SignUpViewModel {
-    private let auth = Auth.auth()
-    private let db = Firestore.firestore()
-    
-    
+    private let authManager: AuthManagerProtocol
+    private let userDB: UserDatabaseServiceProtocol
+
+    init(authManager: AuthManagerProtocol = AuthManager(),
+         userDB: UserDatabaseServiceProtocol = FirebaseUserDatabaseService()) {
+        self.authManager = authManager
+        self.userDB = userDB
+    }
+
     func register(name: String,
                   email: String,
                   password: String,
                   completion: @escaping (Result<UserModel, AuthError>) -> Void) {
-        Auth.auth().createUser(withEmail: email,
-                               password: password) { result, error in
-            if let error = error {
-                completion(.failure(.dataFetchFailed(error.localizedDescription)))
-                return
-            }
-            
-            guard let uid = result?.user.uid else {
-                completion(.failure(.userNotFound))
-                return
-            }
-            
-            let userData: [String: Any] = ["email": email,
-                            "username": name]
-            self.db.collection("users").document(uid).setData(userData) { error in
-                if let error = error {
-                    completion(.failure(.dataFetchFailed(error.localizedDescription)))
-                    return
-                }
-                
-                let userModel = UserModel(uid: uid,
-                                          email: email,
-                                          name: name)
-                completion(.success(userModel))
+
+        authManager.createUser(email: email, password: password) { [weak self] result in
+            switch result {
+            case .success(let uid):
+                self?.userDB.saveUser(uid: uid, name: name, email: email, completion: completion)
+            case .failure(let error):
+                completion(.failure(error))
             }
         }
     }

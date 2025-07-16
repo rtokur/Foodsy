@@ -260,7 +260,7 @@ class SignUpViewController: UIViewController, UIGestureRecognizerDelegate {
             make.edges.equalToSuperview()
         }
         colorView.snp.makeConstraints { make in
-            make.top.equalToSuperview()
+            make.top.equalTo(view)
             make.width.equalToSuperview()
             make.height.equalTo(420)
         }

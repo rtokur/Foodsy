@@ -17,7 +17,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         let window = UIWindow(windowScene: windowScene)
         self.window = window
-        AuthManager.getCurrentUser { result in
+        AuthManager.shared.getCurrentUser { result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let userModel):

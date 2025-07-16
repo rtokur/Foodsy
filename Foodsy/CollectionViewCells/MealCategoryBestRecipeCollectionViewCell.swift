@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import AVFoundation
 
 //MARK: - Protocol
 protocol MealCategoryBestRecipeCellDelegate: AnyObject {
@@ -58,6 +59,7 @@ class MealCategoryBestRecipeCollectionViewCell: UICollectionViewCell {
     
     //MARK: - Properties
     weak var delegate: MealCategoryBestRecipeCellDelegate?
+    var audioPlayer: AVAudioPlayer?
     
     //MARK: - Init
     override init(frame: CGRect) {
@@ -124,14 +126,29 @@ class MealCategoryBestRecipeCollectionViewCell: UICollectionViewCell {
     }
     
     func animateFavoriteButton() {
+        playSound()
         let animation = CABasicAnimation(keyPath: "transform.scale")
         animation.fromValue = 1.0
         animation.toValue = 1.3
-        animation.duration = 0.1
+        animation.duration = 0.15
         animation.autoreverses = true
         animation.repeatCount = 1
 
         favoriteButton.layer.add(animation, forKey: "bounce")
+    }
+    
+    func playSound(){
+        guard let soundURL = Bundle.main.url(forResource: "tapSound", withExtension: "mp3") else {
+            print("Ses dosyası bulunamadı.")
+            return
+        }
+        
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOf: soundURL)
+            audioPlayer?.play()
+        } catch {
+            print("Ses çalınamadı: \(error.localizedDescription)")
+        }
     }
     
     func configure(with meal: Meal, isFavorite: Bool) {

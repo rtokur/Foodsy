@@ -145,7 +145,7 @@ class CategoryViewController: UIViewController, UIGestureRecognizerDelegate {
             make.height.equalTo(1)
             make.top.equalTo(categoryScrollView.snp.bottom).offset(20)
             make.leading.trailing.equalToSuperview().inset(20)
-            make.bottom.lessThanOrEqualToSuperview().inset(20)
+            make.bottom.lessThanOrEqualToSuperview()
         }
     }
     

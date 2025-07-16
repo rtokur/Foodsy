@@ -6,11 +6,13 @@
 //
 
 import UIKit
+import AVFoundation
 
 class MealDetailViewController: UIViewController, UIGestureRecognizerDelegate {
     //MARK: - Properties
     var mealDetailViewModel: MealDetailViewModel
     var onFavoriteUpdated: (() -> Void)?
+    var audioPlayer: AVAudioPlayer?
     
     init(mealDetailViewModel: MealDetailViewModel) {
         self.mealDetailViewModel = mealDetailViewModel
@@ -355,6 +357,7 @@ class MealDetailViewController: UIViewController, UIGestureRecognizerDelegate {
     }
     
     func animateFavoriteButton() {
+        playSound()
         let animation = CABasicAnimation(keyPath: "transform.scale")
         animation.fromValue = 1.0
         animation.toValue = 1.3
@@ -363,6 +366,20 @@ class MealDetailViewController: UIViewController, UIGestureRecognizerDelegate {
         animation.repeatCount = 1
 
         favoriteButton.layer.add(animation, forKey: "bounce")
+    }
+    
+    func playSound(){
+        guard let soundURL = Bundle.main.url(forResource: "tapSound", withExtension: "mp3") else {
+            print("Ses dosyası bulunamadı.")
+            return
+        }
+        
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOf: soundURL)
+            audioPlayer?.play()
+        } catch {
+            print("Ses çalınamadı: \(error.localizedDescription)")
+        }
     }
     
     //MARK: - Actions

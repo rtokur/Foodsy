@@ -143,7 +143,7 @@ class SearchViewController: UIViewController, UIGestureRecognizerDelegate {
             make.top.equalTo(stackView1.snp.bottom).offset(20)
             make.leading.trailing.equalToSuperview().inset(20)
             make.height.equalTo(1)
-            make.bottom.lessThanOrEqualToSuperview().inset(20)
+            make.bottom.lessThanOrEqualToSuperview()
         }
         noResultLabel.snp.makeConstraints { make in
             make.center.equalTo(searchCategoryCollectionView)
